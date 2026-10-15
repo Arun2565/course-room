@@ -1,10 +1,15 @@
-/* course-theme: dark lab theme for the public course-room.
- * Loaded AFTER the reader page's own <style> blocks, so these rules win
- * ties and the :root tokens below re-skin the whole page. Local
- * reading-room pages never load this file. */
+/* course-theme: course-room identity (dark default + light mode).
+ *
+ * Everything is scoped under body.course-room (reader pages) or
+ * body.course-settings (settings page) so the shared generic token names
+ * (--bg, --accent, ...) can never leak into each other or the local
+ * reading-room. Specificity + !important beat site.css where it fights
+ * with !important of its own. Loaded AFTER the page's own styles.
+ * course-theme.js adds the body class and owns the light/dark toggle. */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
-:root {
+/* ================= reader pages ================= */
+body.course-room {
   --bg: #0b0d10;
   --surface: #12151b;
   --ink: #e8e4da;
@@ -13,61 +18,150 @@
   --accent-2: #2dd4bf;
   --border: rgba(255, 255, 255, 0.09);
   --font-reader: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-html { font-size: 16px; }
-body {
-  font-family: var(--font-reader);
-  background: var(--bg);
-  color: var(--ink);
-  font-size: 0.94rem;
+  --rr-readfont: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 15.5px;
   line-height: 1.9;
   -webkit-font-smoothing: antialiased;
 }
-::selection { background: rgba(255, 194, 46, 0.35); }
+html[data-theme="light"] body.course-room {
+  --bg: #faf7f0;
+  --surface: #fffdf8;
+  --ink: #241f1a;
+  --ink-2: #6b635a;
+  --accent: #8a6820;
+  --accent-2: #0f766e;
+  --border: rgba(0, 0, 0, 0.1);
+}
+body.course-room ::selection { background: rgba(255, 194, 46, 0.35); }
+html[data-theme="light"] body.course-room ::selection { background: rgba(138, 104, 32, 0.25); }
 
-/* reader typography */
-.reader-content { max-width: 800px; }
-.reader-content p { font-size: 0.94rem; line-height: 1.9; }
-.reader-content h1 { letter-spacing: -0.02em; }
-.reader-content h2 {
-  color: var(--accent);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  margin: 2.6em 0 1em;
+/* prose: mono everywhere, generous measure */
+body.course-room .reader-content {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  max-width: 800px !important;
+  font-size: 0.94rem !important;
+  line-height: 1.9 !important;
 }
-.reader-content h2::before { content: '// '; color: var(--ink-2); }
-.reader-content h3 { color: var(--ink); }
-.reader-content a { color: var(--accent-2); text-underline-offset: 3px; }
-.reader-content blockquote {
-  border-left: 3px solid var(--accent-2);
-  background: rgba(45, 212, 191, 0.05);
+body.course-room .reader-content p,
+body.course-room .reader-content li,
+body.course-room .reader-content td,
+body.course-room .reader-content dd {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
-.chapter-title h1 { color: var(--ink); }
-.ann-badge { background: var(--accent); color: #0b0d10; font-weight: 700; }
+body.course-room .reader-content h1,
+body.course-room .reader-content h2,
+body.course-room .reader-content h3 {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  letter-spacing: -0.01em;
+}
+body.course-room .reader-content h1 { color: var(--ink) !important; }
+body.course-room .reader-content h2 { color: var(--accent) !important; font-size: 1.05rem !important; }
+body.course-room .reader-content h2::before { content: '// '; opacity: 0.55; }
+body.course-room .reader-content a { color: var(--accent-2) !important; text-underline-offset: 3px; }
+body.course-room .reader-content blockquote {
+  border-left: 3px solid var(--accent-2) !important;
+  background: rgba(45, 212, 191, 0.06) !important;
+}
+body.course-room .chapter-title h1 { color: var(--ink) !important; }
+body.course-room .ann-badge { background: var(--accent) !important; color: #0b0d10 !important; font-weight: 700; }
+html[data-theme="light"] body.course-room .ann-badge { color: #faf7f0 !important; }
 
-/* chrome */
-.top-bar {
-  background: rgba(11, 13, 16, 0.92);
-  border-bottom: 1px solid var(--border);
+/* slim reader bar + toc + next-chapter (chapter-toc.js chrome) */
+body.course-room .rr-topbar {
+  background: var(--bg) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
-.top-bar-title { color: var(--ink-2); }
-.top-bar button { color: var(--ink-2); }
-.top-bar button:hover { background: rgba(255, 194, 46, 0.1); }
-button[title="Toggle theme"] { display: none; }
-.progress-fill { background: var(--accent); }
-.bottom-bar {
-  background: rgba(11, 13, 16, 0.92);
-  border-top: 1px solid var(--border);
-  color: var(--ink-2);
+body.course-room .rr-back,
+body.course-room .rr-toptitle { font-family: 'JetBrains Mono', monospace !important; }
+body.course-room .rr-back { color: var(--ink-2) !important; }
+body.course-room .rr-back:hover { color: var(--accent) !important; }
+body.course-room .rr-toptitle { color: var(--ink) !important; font-style: normal !important; }
+body.course-room .toc-panel { background: var(--surface) !important; border-right: 1px solid var(--border) !important; }
+body.course-room .toc-header { border-bottom: 1px solid var(--border) !important; }
+body.course-room .toc-header h3 { color: var(--ink) !important; font-family: 'JetBrains Mono', monospace !important; }
+body.course-room .toc-chapter { color: var(--ink) !important; font-family: 'JetBrains Mono', monospace !important; }
+body.course-room .toc-chapter:hover { background: rgba(255, 194, 46, 0.07) !important; border-left-color: var(--accent) !important; }
+body.course-room .toc-ann-count { background: var(--accent) !important; color: #0b0d10 !important; }
+html[data-theme="light"] body.course-room .toc-ann-count { color: #faf7f0 !important; }
+body.course-room .toc-subs { border-left-color: var(--border) !important; }
+body.course-room .toc-overlay { background: rgba(0, 0, 0, 0.55) !important; }
+body.course-room .progress-fill { background: var(--accent) !important; }
+body.course-room .bottom-bar { background: var(--bg) !important; border-top: 1px solid var(--border) !important; color: var(--ink-2) !important; }
+body.course-room .footer { color: var(--ink-2) !important; border-top: 1px solid var(--border) !important; }
+body.course-room .rr-next { border-top-color: var(--border) !important; }
+body.course-room .rr-next-label { font-family: 'JetBrains Mono', monospace !important; color: var(--ink-2) !important; }
+body.course-room .rr-next-link { font-family: 'JetBrains Mono', monospace !important; font-style: normal !important; color: var(--ink) !important; }
+body.course-room .rr-next-link:hover { color: var(--accent) !important; }
+body.course-room .rr-next-arrow { color: var(--accent) !important; }
+body.course-room .rr-contents { font-family: 'JetBrains Mono', monospace !important; }
+body.course-room #rr-toolbar { font-family: 'JetBrains Mono', monospace !important; }
+
+/* ================= settings page ================= */
+body.course-settings {
+  --bg: #0b0d10;
+  --bg2: #12151b;
+  --border: rgba(255, 255, 255, 0.09);
+  --border2: rgba(255, 255, 255, 0.18);
+  --text: #e8e4da;
+  --text2: #a7adb8;
+  --text3: #6e7480;
+  --accent: #ffc22e;
+  --danger: #ff7a6b;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
-.footer { color: var(--ink-2); border-top: 1px solid var(--border); }
-.toc-panel { background: var(--surface); border-right: 1px solid var(--border); }
-.toc-header { border-bottom: 1px solid var(--border); }
-.toc-header h3 { color: var(--ink); }
-.toc-chapter { color: var(--ink); }
-.toc-chapter:hover { background: rgba(255, 194, 46, 0.07); border-left-color: var(--accent); }
-.toc-ann-count { background: var(--accent); color: #0b0d10; }
-.toc-subs { border-left-color: var(--border); }
-.toc-overlay { background: rgba(0, 0, 0, 0.55); }
+html[data-theme="light"] body.course-settings {
+  --bg: #faf7f0;
+  --bg2: #fffdf8;
+  --border: rgba(0, 0, 0, 0.09);
+  --border2: rgba(0, 0, 0, 0.18);
+  --text: #241f1a;
+  --text2: #6b635a;
+  --text3: #9a9188;
+  --accent: #8a6820;
+  --danger: #a33b2a;
+}
+body.course-settings h1,
+body.course-settings .streak-num,
+body.course-settings .topbar,
+body.course-settings .btn,
+body.course-settings h2,
+body.course-settings .backup-note,
+body.course-settings .status {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+body.course-settings h1 { letter-spacing: -0.02em; }
+body.course-settings .banner { font-style: normal !important; }
+body.course-settings .note-text,
+body.course-settings .note-quote,
+body.course-settings .about-text {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+
+/* ================= floating light/dark toggle ================= */
+#course-theme-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 400;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink, #e8e4da);
+  background: var(--surface, #12151b);
+  border: 1px solid var(--accent, #ffc22e);
+  border-radius: 999px;
+  padding: 9px 15px;
+  cursor: pointer;
+  opacity: 0.92;
+}
+#course-theme-fab:hover { opacity: 1; }
+html[data-theme="light"] #course-theme-fab {
+  --ink: #241f1a;
+  --surface: #fffdf8;
+  --accent: #8a6820;
+}
