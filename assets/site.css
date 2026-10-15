@@ -115,6 +115,27 @@ body {
 .reader-content h2 { font-size: 1.6rem !important; font-weight: 600 !important; }
 .reader-content h3 { font-size: 1.25rem !important; font-weight: 600 !important; color: var(--ink-2) !important; }
 
+/* ---- Lecture figures (injected by tools/lecture_figures.py) ---- */
+.reader-content figure.rr-fig {
+  margin: 26px 0;
+  padding: 0;
+}
+.reader-content figure.rr-fig img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border, rgba(0,0,0,0.07));
+  border-radius: 4px;
+}
+.reader-content figure.rr-fig figcaption {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  color: var(--text3, #555);
+  margin-top: 8px;
+}
+
 /* Paragraphs */
 .reader-content p {
   font-size: 1.13rem !important;
