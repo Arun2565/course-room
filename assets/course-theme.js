@@ -70,6 +70,69 @@
     sb.onclick = function () { toggleTheme(); };
   }
 
+  /* Mobile bottom pager (Apple-Books-like): Prev | k of n | Next.
+   * Built from the chapter sidebar links; CSS shows it only <=700px. */
+  function buildPager() {
+    if (!isReader || document.getElementById('course-pager')) return;
+    try {
+      var links = document.querySelectorAll('.toc-nav a.toc-chapter');
+      if (!links || !links.length) return;
+      var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+      var idx = -1;
+      Array.prototype.forEach.call(links, function (a, k) {
+        if ((a.getAttribute('href') || '').split('#')[0] === cur) idx = k;
+      });
+      var bar = document.createElement('nav');
+      bar.id = 'course-pager';
+      bar.className = 'rr-ui';
+      bar.setAttribute('aria-label', 'Chapter pages');
+      function sideLink(a, label) {
+        var x = document.createElement('a');
+        x.href = a.getAttribute('href');
+        x.textContent = label + ' ' + ((a.textContent || '').trim().split('\n')[0] || '').slice(0, 18);
+        return x;
+      }
+      var prev = document.createElement('span');
+      if (idx > 0) prev.appendChild(sideLink(links[idx - 1], '‹'));
+      else prev.textContent = '';
+      var pos = document.createElement('span');
+      pos.className = 'course-pager-pos';
+      pos.textContent = idx === -1 ? '' : ((idx + 1) + ' of ' + links.length);
+      var next = document.createElement('span');
+      if (idx !== -1 && idx < links.length - 1) next.appendChild(sideLink(links[idx + 1], '›'));
+      else next.textContent = '';
+      bar.appendChild(prev);
+      bar.appendChild(pos);
+      bar.appendChild(next);
+      document.body.appendChild(bar);
+    } catch (e) {}
+  }
+
+  /* Tap-the-page toggles all chrome (mobile only, CSS-scoped <=700px).
+   * Ignores taps on links, buttons, marks, figures, popups and toolbars,
+   * and any tap that leaves a text selection (reader is selecting). */
+  function bindNakedToggle() {
+    if (!isReader || !document.addEventListener) return;
+    document.addEventListener('click', function (e) {
+      try {
+        if (window.innerWidth > 700) return;
+        var t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest('a,button')) return;
+        if (t.closest('.rr-u,span.ann-hl,span.ann-note,span.ann-ul')) return;
+        if (t.closest('#rr-toolbar,#rr-popup,#epub-font-menu,#epub-settings')) return;
+        if (t.closest('.toc-panel,#course-pager,.rr-topbar,figure,pre,code')) return;
+        if (!t.closest('.reader-content')) return;
+        var sel = window.getSelection ? window.getSelection() : null;
+        if (sel && !sel.isCollapsed) return;
+        document.body.classList.toggle('course-naked');
+      } catch (err) {}
+    });
+  }
+
+  buildPager();
+  bindNakedToggle();
+
   paint();
   window.__courseTheme = { toggle: toggleTheme };
 })();
