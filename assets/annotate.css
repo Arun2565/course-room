@@ -32,6 +32,10 @@
   padding: 1px 2px;
 }
 .rr-u-ul { padding-bottom: 1px; }
+/* gapless underlines: never lift the rule around descenders (g, y, p).
+ * skip-ink is a separate longhand the baked inline styles don't set, so
+ * this also repairs already-built pages without touching their HTML. */
+.ann-ul, .rr-u-ul { text-decoration-skip-ink: none !important; }
 .rr-u.rr-has-note { outline: 1px dashed #999; outline-offset: 1px; }
 .rr-flash { animation: rrflash 1.6s ease; }
 @keyframes rrflash { 0%, 40% { filter: brightness(1.4); } 100% { filter: none; } }
