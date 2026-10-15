@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecture 1 -- Overview and Tokenization</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=14">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="lecture01_reader.html" class="toc-chapter" onclick="navigateToChapter('lecture01_reader.html')"><span>Lecture 1 -- Overview and Tokenization</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#course-introduction">Course introduction</a>
+<a class="toc-heading toc-sub" href="#why-build-from-scratch">Why build from scratch</a>
+<a class="toc-heading toc-sub" href="#scaling-and-behavior">Scaling and behavior</a>
+<a class="toc-heading toc-sub" href="#course-objectives">Course objectives</a>
+<a class="toc-heading toc-sub" href="#the-bitter-lesson">The bitter lesson</a>
+<a class="toc-heading toc-sub" href="#history-of-lms">History of LMs</a>
+<a class="toc-heading toc-sub" href="#executable-lectures">Executable lectures</a>
+<a class="toc-heading toc-sub" href="#course-logistics">Course logistics</a>
+<a class="toc-heading toc-sub" href="#pillar-1-basics">Pillar 1: Basics</a>
+<a class="toc-heading toc-sub" href="#pillar-2-systems">Pillar 2: Systems</a>
+<a class="toc-heading toc-sub" href="#pillar-3-scaling-laws">Pillar 3: Scaling laws</a>
+<a class="toc-heading toc-sub" href="#pillar-4-data">Pillar 4: Data</a>
+<a class="toc-heading toc-sub" href="#pillar-5-alignment">Pillar 5: Alignment</a>
+<a class="toc-heading toc-sub" href="#summary-and-efficiency">Summary and efficiency</a>
+<a class="toc-heading toc-sub" href="#tokenizer-mechanics">Tokenizer mechanics</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Lecture 1 -- Overview and Tokenization</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Lecture 1 -- Overview and Tokenization</h1>
+<span class="ann-badge">📝 0 annotations</span>
+</div>
+<h2 id="course-introduction">Course introduction</h2>
+<p>Welcome everyone. Um, this is CS uh 336 language models from scratch and this is our the core staff. So I&#x27;m Percy, one of your instructors. Um, I&#x27;m really excited about this class because it really allows you to see the whole language modeling building pipeline end to end including data systems and modeling. Um, Tatsu, I&#x27;ll be co-eing with him. So, I&#x27;ll let everyone introduce themselves. Hi everyone. I&#x27;m Tatsu. I&#x27;m one of the the co-instructors. I&#x27;ll be uh giving lecture in, you know, week or two, probably a few weeks. Um, I&#x27;m really excited about this class. We Percy and I, you know, spent a while being a little disgruntled thinking like what&#x27;s the really deep technical stuff that we can teach our students today. And I think one of the things that is really you got to build it from scratch to understand it. So, I&#x27;m hoping that that&#x27;s sort of the ethos that I take away from from that class.</p>
+<p>Uh, hey everyone. I&#x27;m Roit. Um, I actually failed this class when I took it. But now I&#x27;m your CA. So when they say anything is possible.</p>
+<p>Hey everyone, I&#x27;m Neil. I&#x27;m a third year student, PhD student in the CS department. I work with you. Um, yeah, mostly interested in my research on synthetic data, language models, reasoning, all that stuff. So yeah, should be up on the quarter. Uh, hey guys, I&#x27;m Marcel. I&#x27;m a second year PhD. I work as good. These days I work on health and he was a topper of many leaderboards from last year. So he&#x27;s the number to beat. Okay. All right. Well, thanks everyone. Um, so let&#x27;s let&#x27;s continue.</p>
+<h2 id="why-build-from-scratch">Why build from scratch</h2>
+<p>As Satu mentioned, this is the second time we&#x27;re teaching the class. We&#x27;ve grown the class uh by around 50%. I have three TAs instead of two. And one big thing is we&#x27;re making all the lectures uh u on YouTube so that um the world can learn how to build language models from scratch. Okay. So why do we decide to make this course and endure all the all the pain? Um so let&#x27;s ask GPD4. So if you ask it why teach a course on building language models from scratch. Um it the reply is teaching a course provides foundational understanding of techniques fosters innovation. Um kind of the typical kind of generic blathers okay so here&#x27;s the real reason so we&#x27;re in a bit of a crisis I would say researchers are beingcoming more and more disconnected from the underlying technology. Um eight years ago researchers would implement and train their own models in AI. Even six years ago, you at least uh take the models uh like BERT and download them and</p>
+<p>fine-tune them. And now many people can just get away with prompting a proprietary model. So this is not necessarily bad, right? Because as you introduce layers of abstraction, we can all do more. And a lot of research has been unlocked by um be the simplicity of being able to prompt the language model. and I do a fair my share of uh prompting. So, so there&#x27;s nothing wrong with that. But it&#x27;s also remember that these abstractions are leaky. So in contrast to programming languages or operating systems, um you don&#x27;t really understand what the abstraction is. It&#x27;s a it&#x27;s a string in and string out, I guess. Um, and I would say that there&#x27;s still a lot of fundamental research to be done that required tearing up the stack and co-designing different aspects of the data and the uh systems and the model and I think really that full understanding of this technology is necessary for fundamental research. So that&#x27;s why this class exists. We want to</p>
+<p>enable the fundamental research to continue and our philosophy is to understand it you have to build it. So there&#x27;s one small problem here and this is because of the industrialization of language models. So GPD4 has rumored to be 1.8 trillion parameters cost 100 million dollars to train. Um you have XAI building the clusters with uh 200,000 H100s if you can imagine that. um there&#x27;s an investment of over 500 billion, you know, supposedly um over over four years. So these are pretty large numbers, right? Um and furthermore, there&#x27;s no public details on how these models are being built. Um here from GPD4, this is even two years ago. Um they very honestly say that due to the competitive landscape and simply safety limitations, uh we&#x27;re going to disclose no details. Okay, so this is the state of the of the world um right</p>
+<h2 id="scaling-and-behavior">Scaling and behavior</h2>
+<p>now. And so in some sense, frontier models are out of reach for us. So if you came into this class thinking you&#x27;re each going to train your own GPD for um sorry um so we&#x27;re going to build small language models, but the problem is that these might not be representative. And here&#x27;s some of two examples uh to illustrate why. So here&#x27;s a kind of a simple simple one. Um if you look at the fraction of flops spent in the in attention layers of a transformer versus a MLP um this changes quite a bit. So this is a this is a tweet from Steven Fuller from quite a few years ago but it&#x27;s it this is still true. Um if you look at small models it looks like the number of flops in the attention versus the MLP layers are roughly comparable.</p>
+<p>But if you go up to 175 billion, then the, you know, the MLPS really dominate, right? So why does this matter? Well, if you spend a lot of time at small scale and you&#x27;re optimizing the attention, you might be optimizing the wrong thing because um at larger scale, it&#x27;s it doesn&#x27;t it just get gets gets washed out. This is kind of a simple example because you can literally make this plot without actually any compute. you just like do it&#x27;s napkin math. Um here&#x27;s something that&#x27;s a little bit harder to grapple with is just emergent behavior. So this is a paper from Jason Wave from 2022 and um here this plot shows that as you increase the amount of training flops and you look at accuracy a bunch on a bunch of tasks you&#x27;ll see that for a while it looks like the accuracy nothing is happening and all of the sudden you get these kind of uh you know emergent of various phenomena like in context learning. So if you were hanging</p>
+<p>around at this scale, you would have be concluding that well these language models really don&#x27;t work when in fact you had to scale up to get that behavior. So so don&#x27;t despair we can</p>
+<h2 id="course-objectives">Course objectives</h2>
+<p>still learn something in this class and but we have to be very precise about what we&#x27;re learning. So there&#x27;s three types of knowledge. There&#x27;s the mechanics of how things work. This we can teach you. We can teach you what a transformer is. You can you&#x27;ll implement a transformer. We can teach you how model parallelism leverages GPUs efficiently. These are just like kind of the raw ingredients, the mechanics. So that&#x27;s fine. We can also teach you mindset. So this is something a bit more subtle and seems like a little bit you know um fuzzy but uh this is actually in some ways more important I would say because um the mindset that we&#x27;re going to take is that we want to squeeze as most out of the hardware as possible and take scaling seriously right because in some sense the mechanics all those we&#x27;ll see later that all of these ingredients have been around for a while but it was really I think the scaling mindset that open AI</p>
+<p>pioneered that led to this next generation of um AI models. So mindset I think hopefully we can you know bang into you that to think in a certain way and then thirdly is intuitions and this is about which data um and modeling decisions lead to good models. This unfortunately we can only partially teach you and this is because what architectures and what data sets work at no scales might not be the same ones that work at um large scales and but you know that&#x27;s just uh but hopefully you got two and a half out of three. So that&#x27;s um pretty good bang for your buck. Um okay, speaking of intuitions, there&#x27;s this sort of I guess sad reality of things that you know you can tell a lot of stories about why certain um things in the transformer are the way they are, but sometimes it&#x27;s just you know come you do the experiments and the experiments speak.</p>
+<p>Um so for example there&#x27;s this nom paper that introduced the swiggloo which is something that we&#x27;ll uh see a bit more in the in this class which is a type of nonlinearity. Um and in the conclusion, you know, the results are quite good and this got adopted. But in the conclusion, there&#x27;s this honest statement that we offer no explanation except for this is divine benevolence. So there you go. This is uh um the extent to our under of our understanding. Okay. So now let&#x27;s talk</p>
+<h2 id="the-bitter-lesson">The bitter lesson</h2>
+<p>about this bitter lesson that I&#x27;m sure people have, you know, heard about. I think there&#x27;s a sort of a misconception that the bitter lesson means that scale is all that matters. Algorithms don&#x27;t matter. All you do is pump more capital into building the model and you&#x27;re good to go. I think this couldn&#x27;t be further from the truth. I think the right interpretation is that algorithms at scale is what matters. And because at the end of the day, your accuracy of your model is really a product of your efficiency and the number of resources you put in. And actually efficiency if you think about it is way more important at larger scale because if you&#x27;re spending you know hundreds of millions of dollars you cannot afford to be wasteful in the same way that if you&#x27;re uh looking at running a job on your on your local cluster you might run it again you fail you you debug it and if you look at actually the utilization and the use I&#x27;m I&#x27;m sure open is way more</p>
+<p>efficient than any of us um right now. So efficiency really is important and furthermore this I think is this point is maybe not as well appreciated in the sort of scaling rhetoric so to speak um which is that if you look at efficiency which is combination of hardware and algorithms but if you just look at the algorithm efficiency there&#x27;s this nice open air paper from 2020 that showed uh over the period of 2012 to 2019 there&#x27;s a 44 for X if algorithmic efficiency improvement in um the time that it took to train imageet to a certain level of accuracy right so this is huge and I think if you I don&#x27;t know if you could see the the abstract here um this is faster than Morris law right so algorithms do matter if you didn&#x27;t have this efficiency you would be paying 44 times more cost this is for image models but uh there&#x27;s some results language as well. Okay. So with all that I think the right framing or mindset to have is what is the best model one can</p>
+<p>build given a certain compute and data budget. Okay. And this question makes sense no matter what scale you&#x27;re at because um you&#x27;re sort of like act it&#x27;s accuracy per resources. And of course if you can raise the capital and get more resources you&#x27;ll get better models. But as researchers, our goal is to improve the efficiency of the algorithms. Okay. So maximize efficiency. We&#x27;re going to hear a lot of that. Okay. So now let me talk a little bit about the current uh landscape. Um</p>
+<h2 id="history-of-lms">History of LMs</h2>
+<p>and a little bit of I guess you know obligatory history. Um so language models have been around for a while now. um you know go going back to Shannon um you know who looked at language models a way to estimate the entropy of um English um I think in AI they really were prominent in NLP where they were a component of larger systems like machine translation speech recognition and one thing that&#x27;s maybe not as appreciated these days is that if you look back in 2007 uh Google was training fairly large engram models so five gram models over two trillion tokens which is a lot more tokens than GPT3. Um and it was only rec I guess in the last two years that um we&#x27;ve gotten to that in token count. Um but they were engram models so they didn&#x27;t really exhibit any of the interesting phenomena that we know of language models today. Okay. Okay. So in the 2010s I think a lot of the you can think about this a lot of the deep learning revolution happened and a lot</p>
+<p>of the ingredients sort of kind of falling into place right so there was the first neural language model from Joshra Benjel&#x27;s group in back in uh 2003 there was seek to seek models um this I think was a you know big deal for you know how do you basically model sequences from Ilia and uh Google folks Um there&#x27;s an atom optimizer which still is used by the majority of uh people dating over a decade ago. Um there&#x27;s attention mechanism which was um developed in the context of machine translation um which then led up to the famous attention all you need or the aka the transformer paper in 2017. People were looking at how to scale mixture of experts. There&#x27;s a lot of work around late 20110s on how to essentially do model parallelism and they were actually figuring out how you could train you know 100 billion parameter models. They didn&#x27;t train it for very long because these are these were like more system work but the all the ingredients were</p>
+<p>kind of in place um before in by the time the 2020 came around. Um so I I think one you know other trend which was starting in LPU was the idea of you know these foundation models that could be trained on a lot of text and adapted to a wide range of downstream tasks. So Elmo BERT um you know T5 these were models that um were for their time very exciting. we kind of maybe forget how excited people were about you know things like bird but um it was a big deal and then I think a um I mean this is abbreviated history but um I think one critical piece of the puzzle is you know open AI this taking these ingredients you know they and applying very nice engineering and um really kind of pushing on the kind of the scaling laws embracing it as you know this is the kind of the minds set piece and that led to GPD2 and GPT3. Um, Google, you know, obviously was in the game and trying to uh, you know, compete as well.</p>
+<p>Um, but um, that sort of paved the way I think to another kind of line of work which is um, these were all closed models. So models that weren&#x27;t released and you can only access via API but they were although open models starting with you know early work by you know Eluther right after GP3 came out Meta&#x27;s early attempt um which uh didn&#x27;t work maybe as quite as well um Bloom um and then Meta Alibaba DeepS AI2 and there&#x27;s a few others which I have listed have been creating these uh open models where um the the weights are released. Um, one other piece of I think tibbit about openness I think is important is that there&#x27;s many levels of openness. There&#x27;s closed models like GPD4. There&#x27;s open weight models where the weights are available and there&#x27;s actually a paper a very nice paper with lots of architectural details but no details about the data set. And then there&#x27;s uh open source models where all the weights and data are available and the paper</p>
+<p>that where they&#x27;re honestly trying to explain as much as they can. Um you know but of course you can&#x27;t really capture everything you know in a paper and there&#x27;s no substitute for learning how to build it except for kind of doing your yourself. Okay. So that leads to kind of</p>
+<h2 id="executable-lectures">Executable lectures</h2>
+<p>the present day where um there&#x27;s a whole host of you know frontier models from open anthropic xi google meta deepseeek Alibaba tensen and probably a few others um that are sort of dominate the the current you know landscape. So, we&#x27;re kind of interested interesting time where, you know, just to kind of reflect, a lot of the ingredients, like I said, were developed, which is good because I think we&#x27;re going to revisit some of those um ingredients and trace how they these techniques work. And then we&#x27;re going to try to move as close as we can to best practices on frontier models but you know using um information from essentially the open you know community and reading between the lines from what we know about the closed uh models. Okay. So just as an interlude um so what are you looking at here? So um this is a executable lecture. So it&#x27;s a program where I&#x27;m stepping through and it delivers the content of lecture. So</p>
+<p>one thing that I think is interesting here is that um you can embed code. So if you um you can just step through code and I think this is a smaller screen than I&#x27;m used to, but uh you can look at the environment variables as you&#x27;re stepping through code. So that&#x27;s uh useful later when we start actually um trying to drill down and giving code examples. You can see the hierarchical structure of the lecture like we&#x27;re in this module and you can see where it&#x27;s it was called from main um and you can jump to definitions um like supervised fine-tuning which we&#x27;ll uh talk about later. Okay. And if you think this looks like a Python program, um, well, it is a Python program. Um, but I&#x27;ve made it, uh, you&#x27;ll processed it so for your viewing pleasure.</p>
+<p>Okay. So, let&#x27;s move on to the course uh, logistics now.</p>
+<h2 id="course-logistics">Course logistics</h2>
+<p>Um, actually maybe I&#x27;ll pause for questions. Any questions about um you know what we&#x27;re learning in this class? Yeah. Would you expect from this class to be able to lead a team to build a frontier model?</p>
+<p>So the question is would I expect a graduate from this class to be able to lead a team and build a frontier model? Of course with you know like a billion dollars of capital. Yeah of course. Um, I would say that it&#x27;s a good step, but I there&#x27;s definitely uh many pieces that are missing. And I think, you know, we thought about we should really teach like a series of classes that eventually leads up to to as close as we can get. But, um, I think this is maybe the first step of the puzzle, but there are a lot of things and happy to talk offline about that. But I like the ambition.</p>
+<p>Yeah, that&#x27;s what you should be doing, taking the class so you can go lead teams and build frontier models. Okay. Um, okay, let&#x27;s talk a little bit about the course. Um, so here&#x27;s a website. Everything&#x27;s online. This is a fiveunit class. Um, but I I think that maybe doesn&#x27;t express the the level here. Um, as well as this quote that I pulled out from a course evaluation. Um, the entire assignment was approximately the same amount of work as all five assignments from the CSU24N plus the final project. And that&#x27;s the first homework assignment. So, not to all scare you off, but just just giving some data here. Um, so why should you endure that?</p>
+<p>Um, why should you do it? I I think you this class is really for people who have sort of this obsessive need to understand how things work all the way down to the the atoms so to speak and I think if you you know when you get through this class I think you will have really leveled up in terms of your research engineering and the comfort level of comfort that you&#x27;ll have in building ML systems at scale will just be I think um you know something there&#x27;s also a bunch of reasons that you shouldn&#x27;t take the class for example example, if you want to get any research done um this quarter, maybe this class isn&#x27;t for you. If you&#x27;re interested in learning just about the hottest new techniques um there are many other classes that can probably deliver on that, you know, better um than for example you spending a lot of time debugging BPE. Um, and this is really, I think, about a class about, you know, the the primitives and learning things</p>
+<p>bottom up as opposed to, um, the the kind of the latest. Um, and also, if you&#x27;re interested in building language models or, you know, 4X, um, this is probably not the first class I you would take. Um, I think practically speaking, you know, as much as I kind of made fun of prompting, prompting is great, fine-tuning is great. If you can do that and it works, then I think that is something you should absolutely start with. So, I don&#x27;t want people taking this class and thinking like great any problem the first step is to train a language model from scratch. That is not the right way uh of thinking about it. Um, okay. And I know that many of you um you know some of you were enrolled but we didn&#x27;t we did have a cap so we weren&#x27;t able to enroll everyone and and also for the people online you can follow at at home um all the lecture materials and assignments are online so you can look at them the lectures are also recorded</p>
+<p>and will be put on YouTube although there will be um some number of week lag u there um and also we&#x27;ll uh offer this class next year so If you were not able to take it this year, um don&#x27;t fret, there will be next time. Okay. So, the class has five assignments. Um and each of the assignments we don&#x27;t provide scaffolding code in the sense that the uh the you&#x27;re literally give you a blank file and you&#x27;re supposed to, you know, build things up. Um and in the spirit of learning uh building from scratch, but we&#x27;re not that mean. Um we do provide unit tests and some adapter interfaces that allow you to check uh correctness of different uh pieces and also the assignment write up if you walk through it does do it for sort of a gentle job of doing that. But you&#x27;re kind of on your own for making um good software design decisions and figuring out what you name your functions and how to you know organize your code which is a</p>
+<p>useful skill I think. Um so one strategy I think for all assignments is that there is a piece of assignment which is just implement the thing and make sure it&#x27;s correct. That mostly you can do locally on your laptop. You shouldn&#x27;t need compute for that. And then you should we have a cluster that you can run um for benchmarking both accuracy and speed. Right? So I I want everyone to kind of embrace this idea of like you want to use as a as small data set or as few resources as possible to you know prototype before running large jobs. You shouldn&#x27;t be debugging with one billion parameter models on the cluster um if you can help it. Okay. Um there&#x27;s some assignments which will have a leaderboard um which usually is of the form do things to make perplexity go down given a particular training budget.</p>
+<p>Last year it was I think pretty um you know exciting for people to try to um you know try different things that you either learn from the class or you read online. Um, and then finally, I guess this year is, you know, this was less of a problem last year because I guess Copilot wasn&#x27;t as good, but, you know, curs is pretty good. Um, so I I think our general strategy is that, you know, AI tools are, you know, can take away from learning because there are cases where it can just solve the thing you you want it to do. But, you know, I think you can obviously use them judiciously. So, but use at your own risk. you&#x27;re kind of responsible for your own learning experience here. Okay. So, uh we do have a cluster.</p>
+<p>So, thank you Together AI for providing a bunch of H100s for us. Um there&#x27;s a guide to please read it carefully to learn how to use the cluster. Um and uh start your assignments early because um the cluster will fill up towards the end of a deadline as everyone&#x27;s uh trying to get their large runs in.</p>
+<p>Okay. Um, any questions about that? You mentioned it was a five unit. Were you able to sign up for it for like, right? So, the question is, can you sign up for less than five units? I think administratively, uh, if you have to sign up for less, that is possible, but it&#x27;s the same class and the same workload. Yeah. Any other questions?</p>
+<p>Okay. So in this part I&#x27;m going to go</p>
+<h2 id="pillar-1-basics">Pillar 1: Basics</h2>
+<p>through all the different components of the course and just give a broad overview a preview of what you&#x27;re going to experience. Um so remember it&#x27;s all about efficiency given hardware and data. Um how do you train the best model given your resources? So for example, if I give you a common crawl dump, a web dump and 32 H100s for two weeks, what should you do? There are a lot of different design decisions. Um there&#x27;s, you know, questions about the tokenizer, the architecture, systems optimizations you can do, data things you can do, and we&#x27;ve organized the class into these five um units or pillars. So I&#x27;m going to go through each of them you know in turn um and talk about what we&#x27;ll cover what the assignment will involve and and then I&#x27;ll kind of wrap up. Okay. So the goal of the basics unit is just get a basic version of a full pipeline working. So here you implement a tokenizer model architecture and training. So just say a bit more about</p>
+<p>what these components are. So a tokenizer is something that converts between strings and sequences of integers. Intuitively you can think about the integers corresponding to breaking up the string into uh segments and mapping each segment to an integer. And the idea is that you just you your sequence of integers is what goes into the actual model which has to be like a fixed uh dimension. Okay. So in this course we&#x27;ll talk about the bip pair encoding BPE tokenizer which is um relatively simple and um and still is is used. Um there are I guess a promising set of um methods on tokenizer free approaches. So these are methods that just start with the the raw bytes and don&#x27;t do tokenization and develop a particular architecture that just takes the raw bytes. Um this work is is promising but you know so far I haven&#x27;t seen it been scaled to the frontier yet. So we&#x27;ll go with BP for now. Okay. Okay, so once you&#x27;ve tokenized your sequence or</p>
+<p>strings into a sequence of integers, now we define a model architecture over these sequences. So the starting point here is original transformer. Um that&#x27;s what is the backbone of basically all um you know frontier models. Um and here&#x27;s architectural diagram. um we won&#x27;t go into details here but uh it there&#x27;s a attention you know piece and then there&#x27;s a um MLP you know layer with some you know normalization um so a lot has actually happened till since 2017 right I think there&#x27;s a sort of sense to which oh the transformer was invented and then you know everyone&#x27;s just using transformer and to first approximation that&#x27;s true we&#x27;re still using the same recipe but there have been a bunch of the smaller uh improvements that do make a substantial difference when you add them all up. So for example, there is um the activation um you know nonlinear activation function. the squiggly which we saw a little bit before positional embeddings</p>
+<p>there&#x27;s new positional embeddings um um these rotary positional embeddings which we&#x27;ll uh talk about um normalization um you know instead of using layer norm we&#x27;re going to look at something called RMS norm which is similar but simpler um there&#x27;s a question where you place the normalization which has been changed from the original transformer um the MLP use uh the canonical version is a dense MLP And you can replace that with mixture of experts. Um attention is something that has actually been uh getting a lot of um attention I guess. Um there&#x27;s there&#x27;s full attention and then there&#x27;s you know sliding window attention and linear attention. All of these are trying to prevent the quadratic blow up. There&#x27;s also lower dimensional versions like you know GQA and MLA which we&#x27;ll get to in a second um or not in a second but in a future lecture. And then you know the most kind of maybe radical thing is other alternatives to the um transformer like</p>
+<p>space models like hyena where they&#x27;re not doing you know attention but you know some other sort of operation and sometimes you get best of both worlds by you know mixing making a hybrid model that mixes these in with transformers. Um okay so once you define your architecture you need a train. So there&#x27;s a you know design decisions include optimizer. So atom w uh which is a variant basically atom fixed up um is is still very prominent. So we&#x27;ll mostly work with that but uh it is worth mentioning that there is more recent optimizers like muan and soap that have shown promise um learning rate schedule um you know batch size you know whether you do regularization or not hyperparameters there&#x27;s a lot of details here and and I think this class is one where the details do matter because you can easily have you know order of magnitude difference between a welltuned you know architecture and something that&#x27;s just like a vanilla transformer.</p>
+<p>So in assignment one, basically you&#x27;ll implement the BP tokenizer. Um I&#x27;ll warn um you that this is actually the part that seems to have been a lot of surprising maybe a lot of work for people. So um just you know you&#x27;re warned and uh you also implement the transformer crossmput loss atomw optimizer and training loop. So again the whole stack and you know we&#x27;re not making you implement you know pietorch uh from scratch. So you can use pietorch but you can&#x27;t use like you know the transformer implementation for pietorch. you there&#x27;s a small list of um uh functions that you can use and you can only use those. Okay, so we&#x27;re going to have some uh you know tiny stories and open web text data sets that you&#x27;ll train on and then there will be a leaderboard um to minimize the open web text perplexity. We&#x27;ll give you 90 minutes on a a H100 and see what you can do. So this is last year um so see we have the top. So this is the number to</p>
+<p>beat for this year. Okay. All right. So that&#x27;s the basics.</p>
+<h2 id="pillar-2-systems">Pillar 2: Systems</h2>
+<p>Now after basics um I mean in some sense you&#x27;re done, right? Like you have ability to train a transformer. What what else do you need? So the system part really goes into how you can optimize this further. So how do you get the most out of hardware? And for this we need to take a closer look at the hardware and how we can you know leverage it. So there&#x27;s kernels, parallelism and inference are the three components of this uh unit. So okay so to first talk about kernels um let&#x27;s talk a little bit about what a GPU looks like. Okay. So, a GPU um which we&#x27;ll get much more into um is basically a huge array of these um you know little uh units that do floatingoint operations.</p>
+<p>Um and maybe the one thing to note is that this is the GPU chip and here is the um the memory that&#x27;s actually offchip. Um and then there&#x27;s some other memory like L2 caches and L1 caches on chip. And so the basic idea is that compute has to happen here. Your data might be somewhere else and how do you basically organize your compute so that um you can be most efficient. So one quick analogy is imagine that your your memory is and is where you can store like your data and the model parameters is like a warehouse and your compute is like the the the factory and what you what ends up being a big bottleneck is just data movement costs, right? Um so the thing that we have to do is how do you organize the compute like even a matrix multiplication to maximize the utilization of the GPUs by minimizing the data movement and there&#x27;s a bunch of techniques like fusion and um and tiling that allow you to do that. So we&#x27;ll get</p>
+<p>all into the details of that and to implement and leverage a kernel uh we&#x27;re going to look at Triton. There&#x27;s other things you can do with various levels of uh sophistication, but we&#x27;re going to use Triton, which is developed by OpenAI in a popular way to build kernels. Okay, so we&#x27;re going to write some kernels. That&#x27;s for one GPU. So now, um, in general, you have these big runs take, you know, ten thousands if not tens of thousands of GPUs. And but even at 8 it kind of starts becoming interesting because um you have a lot of GPUs they&#x27;re connected to some CPU nodes and they also have are directly connected via N MV switch MVL link um and the it&#x27;s the same idea right now the only thing is that data movement between GPUs is even slower right um and so we need to figure out how to put um model you know parameters and activations and gradients and put them on the GPUs and do the computation and to minimize amount of you know movement</p>
+<p>um and then so we&#x27;re going to explore different type of techniques like data parallelism and you know tensor parallelism and and so on so um so that&#x27;s all I&#x27;ll say about that and finally inference um is something that we didn&#x27;t actually do last year in the class um although we had a guest lecture um but this is important because um inference is how you actually use a model right it&#x27;s basically the task of generating tokens given a prompt given a trained model and it also turns out to be really useful for a bunch of other things besides just chatting with your your favorite um um model you need it for reinforcement learning test time compute which has been you know very popular lately and even evaluating models you need uh to do inference. So we&#x27;re going to spend some time talking about inference. Um actually if you think about the globally the cost that&#x27;s dedic that&#x27;s spent on inference is going it&#x27;s you know ex eclipsing the cost that</p>
+<p>it is used to train models because training despite it being very intensive is ultimately a onetime cost and inference is cost scales with every use and the more people use your your your model the the more you&#x27;ll need inference to be efficient. Okay. So um in inference there&#x27;s two phases. There&#x27;s a prefill and a decode. Prefill is you take the prompt and you can run it through the model and get some you know activations. And then decode is you go autogressively one by one and generate tokens. So prefill all the tokens are given so you can process everything at once. So this is exactly what you see at training time and generally this is a good setting to be in because um you can par it&#x27;s naturally parallel and you&#x27;re mostly computebound. What makes inference I think uh special and difficult is that this auto reggressive decoding you need to generate one token at a time and ends you it&#x27;s hard to actually saturate all your GPUs and it</p>
+<p>becomes you know memory bound because you&#x27;re constantly you know moving data around and we&#x27;ll talk about a few ways to speed the models up. um just speed inference up. You can use a cheaper model. Um you can use this uh really cool technique called speculative decoding where you use a cheaper model to sort of scout ahead and generate multiple tokens and then if these tokens happen to be good by some for some definition good, you can have the full model model just you know score in and accept them all in in parallel. Um and then there&#x27;s a bunch of systems optimizations that you can do as well.</p>
+<p>Okay. So after the systems oh okay assignment two so um you&#x27;re going to implement a kernel you&#x27;re going to implement um some parallelism. So data uh parallel is is very natural and so we we&#x27;ll do that. um some of the model parallelism like FSTP turns out to be a bit kind of uh complicated to do from scratch. So we&#x27;ll do sort of a baby version of that. Um but you know I encourage you to learn and you know about the full version um we&#x27;ll go over the full version in class but um implementing from scratch might be a bit you know too much. Um and then I think an important thing is getting in the habit of always benchmarking profile. I think that&#x27;s actually probably the most important thing is that you can implement things, but unless you have a a feedback on how well your implementation is going and where the bottlenecks are, you&#x27;re just going to be kind of flying blind. Okay, so unit three is uh scaling</p>
+<h2 id="pillar-3-scaling-laws">Pillar 3: Scaling laws</h2>
+<p>laws. Um and here the goal is you want to do experiments at small scale and figure things out and then um predict the hyperparameters and loss at large scale. So here&#x27;s a fundamental question.</p>
+<p>So um if I give you a flops budget, you know what model size should you use? If you use a larger model, that means you can train on less data and if you use a smaller model, you can train on more data. So what&#x27;s the right balance here? And this has been quite ex studied quite extensively and figured out by a series of paper from open air and and deep mind. So if you hear the term chinchilla optimal this is what this is referring to. And the and the basic idea is that for every compute budget number of flops you can vary the number of parameters of your model. Okay. And that and then you measure how good that model is. So for every level of compute you can get the optimal um you know parameter count and then what you do is you you can fit a a curve to extrapolate and see if you had let&#x27;s say you know one E22 flops you know what would be the parameter size and it turns out these minimum when you plot them it&#x27;s actually remarkably um</p>
+<p>you know linear um which led leads to this like very actually simple but useful um rule of thumb which is that if you have um a particular um model of size n if you multiply by 20 that&#x27;s the number of tokens you should train on essentially so that means if I say you know 1.4 four billion parameter model should be trained on 28 billion you know tokens. Okay, but you know this doesn&#x27;t take into account inference cost. This is literally how can you train the best model regardless of how big that model is. So there&#x27;s some limitations here but it&#x27;s nonetheless been extremely useful for model development. So in this assignment, this is kind of um you know fun because we define a quote unquote training API which you can query with a particular set of hyperparameters. You specify the architecture you know um and batch size and so on and we return you a loss that you your decisions will get you. Okay. So your job is you have a</p>
+<p>flops budget and you&#x27;re going to try to figure out how to train a bunch of models and then gather the data. You&#x27;re going to fit a scaling law to the gather data and then you&#x27;re going to submit your prediction on you know what you would choose to be the hyperparameters, what model size and and so on um at a larger scale. Okay. So this is a case where you have to be really we want to put you in this position where uh there&#x27;s some stakes. I mean this is not like burning real compute but you know once you run out of your flops budget that&#x27;s that&#x27;s it. Um so you have to be very careful in terms of how you prioritize what experiments uh to run which is something that the frontier labs have to do all the time and there will be a leaderboard uh for this which is minimize flops minimize loss given your flops budget.</p>
+<p>Question from point 24. Yeah. So if we&#x27;re working ahead, should we expect assignments to change over time or are these going to be the final assignments? So the the question is that these links are from 2024. Um the rough assignments the the rough structure will be the same from 2025. There will be some modifications, but if you look at these, you should have a pretty good idea of what to</p>
+<h2 id="pillar-4-data">Pillar 4: Data</h2>
+<p>expect. Okay, so let&#x27;s go into data now.</p>
+<p>Um okay so up until now you&#x27;ve done you&#x27;ve have scaling laws you have systems you can you have your transformer implementation everything you&#x27;re really kind of good to go but data I would say is a really kind of key ingredient that I think differentiates in some sense and the the question to ask here is what do I want this model to do right because it&#x27;s what I what the model does is completely deter I mean mostly determined by uh the data. If I put if I train a multilingual data, it will have multilingual capabilities. If I train on code, it&#x27;ll have code capabilities. It&#x27;s not, you know, it&#x27;s very natural. And usually data sets are a conglomeration of a lot of different pieces. There&#x27;s, you know, uh this is from a pile which is you know four years ago, but the same idea I think holds.</p>
+<p>You know, you have data from, you know, the web. This is common crawl. um you have you know maybe sack exchange, Wikipedia, GitHub and different you know sources which are curated and so in the data section we&#x27;re going to start talking about evaluation which is given a model how do you evaluate whether it&#x27;s any good so we&#x27;re going to talk about perplexity way measures standard kind of standardized testing like MMLU um if you have models that generate utterances for instruction following how do you evaluate that um there&#x27;s you know also decisions about if you can enso or do chain of thought at test time um you know how does that affect your evaluation and then you know you can talk about entire systems um evaluation of entire system not just a language model because language models often get these days plugged into some agentic system or something. Um okay so now after establishing evaluation um let&#x27;s look at data curation. So this is I I think an</p>
+<p>important point that people don&#x27;t realize. I often hear people say oh we&#x27;re training the the model on the internet. This just doesn&#x27;t make sense right data doesn&#x27;t just you know you know fall from the sky and there&#x27;s the internet that you can you know um pipe into your model. um you know data has to always be actively acquired uh somehow um so even if you you know just just as an example of you know I always tell people look at the data um and so let&#x27;s look at some data so this is uh some common crawl um you know data I&#x27;m going to take 10 documents and I think hopefully this works okay I think the rendering is off but Um you can kind of see uh this is a this is a sort of random sample of of common crawl.</p>
+<p>Um and you can see that this is maybe um not exactly the data. Oh, here&#x27;s some actually real text here. Okay, that&#x27;s cool. Um, but if you look at most of common crawl aside from this is a different language, but you can also see this is very spammy sites and you&#x27;ll quickly realize that a lot of the web is just, you know, trash and so well, okay, maybe that&#x27;s not that&#x27;s surprising, but it&#x27;s more trash than you would actually expect. I promise. Um, so what what I&#x27;m saying is that there&#x27;s a lot of work that needs to happen in data. So you can crawl the internet, you can take books, archives, papers, um, GitHub. Um, and there&#x27;s actually a lot of processing that needs to happen. Um, you know, there&#x27;s also legal questions about what data you can, you know, train on, which we&#x27;ll touch on. Um, nowadays, a lot of frontier models have to actually buy data. um because the data on the internet that&#x27;s publicly uh accessible is actually uh turns out to</p>
+<p>be you know a bit limited for that kind of the you know the really frontier um performance and also I I think it&#x27;s important to remember that this data that&#x27;s scraped it&#x27;s not actually text right first of all it&#x27;s HTML or it&#x27;s PDFs or in the case of code it&#x27;s just directories so there has to be an explicit process that takes this data and turns it into text. Okay, so we&#x27;re going to talk about the transformation from HTML to to text. Um, and this is going to be a lossy process. Um, so the trick is how can you preserve the content and some of the structure um without um you know basically just having HTML. Um filtering as you could you know surmise is going to be very important both for getting high quality data but also removing harmful content.</p>
+<p>Um generally people train classifiers to do this. The dduplication is also um an important step which we&#x27;ll talk about. Okay. So assignment four is all about data. We&#x27;re going to give you the raw common crawl, you know, dump so you can see just how bad it is. And you&#x27;re going to train classifiers, ddup, and then there&#x27;s going to be a leaderboard where you&#x27;re going to try to um minimize perplexity given your token budget. So now let&#x27;s now have the data, you&#x27;ve done this, built all your fancy kernels, you&#x27;ve trained, now you can</p>
+<h2 id="pillar-5-alignment">Pillar 5: Alignment</h2>
+<p>really train models. But at this point what you&#x27;ll get is a model that can um complete the next token right and this is called a a essentially a base model and I think about it as a model that has a lot of raw potential but it needs to be aligned or modified some way and alignment is a process of making it useful. So in alignment captures a lot of different things but three things I think it captures is that you want to get the language model to follow instructions right completing the next token is not necessarily following the instruction it&#x27;ll just complete the instruction or whatever it thinks will follow the instruction um you get to here specify the style of the generation whether you want to be a long or short whether you want bullets whether whether you know you want it to be witty or have SAS or not. Um and you when you play with um you know you you know chatbt versus grock you&#x27;ll see that there&#x27;s different</p>
+<p>alignment uh that has happened and then also safety um one important thing is for these models to be able to refuse answers that can be you know harmful. So that&#x27;s where alignment also kicks in. So there&#x27;s generally two phases of alignment. There&#x27;s supervised fine-tuning and here the goal is I mean it&#x27;s very simple. You basically gather a set of um user assistant pairs um so prompt response pairs and then you do um supervised learning. Okay. And the idea here is that the base model already has the sort of the raw potential. So just fine-tuning it on um a few examples is uh sufficient. Of course, the more examples you have, the better the the results, but um there&#x27;s papers like this one that shows even like a thousand uh examples suffices to give you instruction following capabilities from a base good base model. Okay, so this part is actually very, you know, simple and it&#x27;s not that different from um, you know, pre-training because it&#x27;s just</p>
+<p>you&#x27;re given text and you just maximize the probability of the text. Um, so the second part is a bit more interesting from a algorithmic perspective. So the idea here is that even with SFT phase, you will have a decent um, model. And now how do you improve it? what you can get there more SFT data but that can be very expensive because you have to you know annot someone sit down and annotate data. So there the goal of learning from feedback is that you can leverage lighter forms of annotation um and have the algorithms do a bit more work. Okay. So one type of data you can learn from is preference data. So this is where you generate multiple responses from a model to a given prompt like A or B and the user rates whether A or B is better and so the data might look like you know it generates uh you know what&#x27;s the best way to train a language model use a large data set or use a small data set and of course the answer should be a so</p>
+<p>that is a a unit of expressing preferences. Another type of supervision you could have is using verifiers. So for some domains, you&#x27;re lucky enough to have a formal verifier like for math or code. Or you can use learn verifiers where um you train an actual language model to um to rate uh the the the the response. And of course this relates to evaluation. Again, algorithms. Um this is you know we&#x27;re in the realm of reinforcement learning. So uh one of the earliest algorithms uh that was developed that was applied to instruction um tuning models uh were was PO proximal policy optimization. Um it turns out that if you just have preference data you there&#x27;s a much simpler algorithm called DPO that works really well. Um but in general if you want to learn uh from verifiers data you have to it&#x27;s not preference data so you have to embrace RL fully and um you know there&#x27;s this um method which we&#x27;ll uh do in this class which called group</p>
+<p>relative preference optimization which simplifies po makes it more efficient by removing the value function developed by deepseek which u seems to work pretty</p>
+<h2 id="summary-and-efficiency">Summary and efficiency</h2>
+<p>well. Okay, so assignment five implements supervised tuning DPO and GRPO and of course evaluate question about assignment one. Do people have similar things to say about assignments two or Yeah, the question is um assignment one seems a bit uh daunting. What about the other ones? I would say that assignment one and two are definitely the most heavy and hardest. Um, assignment three is um a bit more of a breather and assignment four and five at least last year were um I would say a notch below assignment one or two. Um although I don&#x27;t know depends on we haven&#x27;t fully worked out the details for this year.</p>
+<p>Yeah, it does get better. Okay, so just to a recap of the different pieces here. Um, you know, remember efficiency is this driving principle and there&#x27;s a bunch of different design decisions and you can I think if you view efficiency um everything through a lens of efficiency, I think a lot of things kind of make sense. Um and importantly I think you know we are it&#x27;s worth pointing out there we are currently um in this compute constraint regime at least this class and most people who are somewhat GPU poor so we have a lot of data but we don&#x27;t have that much compute and so these design decisions will reflect squeezing the most out of the hardware so for example data processing we&#x27;re filtering fairly aggressively because we don&#x27;t want to waste precious compute on bad or irrelevant data tokeniz ization like it&#x27;s it&#x27;s nice to have a a model over bytes that&#x27;s very elegant but it&#x27;s very compute inefficient with today&#x27;s model</p>
+<p>architectures. So we have to do tokenization to as an efficiency gain model architecture. There are a lot of design decisions there that are essentially motivated by you know efficiency training. I think the fact that we&#x27;re most of what we&#x27;re doing to do is just a single epoch. This is clearly we&#x27;re in a hurry. Um we just need to see more data as opposed to spend a lot of time on any given data point. Scaling laws is completely about efficiency. we use less compute to figure out the hyperparameters. Um and alignment is is is maybe a little bit different but um the connection to efficiency is that if you can put resources into alignment then you actually require less uh you know smaller base models. Okay.</p>
+<p>So there is a you know there&#x27;s sort of two paths. If your use case is fairly narrow, you can probably use a smaller model. You align it or fine-tune it and you can do well. But if you your use cases are very broad, then there might not be a substitute for training a a big model. So that&#x27;s today. So increasingly now um at least for Frontier Labs u they&#x27;re becoming data constrained which is interesting because I think that the design decisions will presumably completely change well I mean compute will always be important but I think the design decisions will change for example you know learning taking one epoch of your data I think doesn&#x27;t really make sense if you have more compute why wouldn&#x27;t you take more epochs at least or do something uh smarter or maybe there will be um different architectures for example um because a transformer was really motivated by you know compute efficiency um so that&#x27;s something to kind of ponder still it&#x27;s</p>
+<p>about efficiency but the design decisions reflect what regime you&#x27;re in okay so now I&#x27;m going to dive into the first uh unit um you know before Not any questions?</p>
+<p>Do you have a slack or uh the question is we have a slack or we will have a slack. We&#x27;ll send out details um after this class. Yeah. Will students auditing the course also have access to the same materials? Uh the question is students auditing the class will have access to all the um online uh you know materials assignments and we&#x27;ll give you access to uh Canvas so you can watch the the uh lecture videos. Yeah. What&#x27;s the grading of the assignments? What&#x27;s the grading of the assignments? Um good question. So there will be a set of unit tests that uh you will have to pass. So part of the grading is just did you implement this correctly. Um there will be also parts of the grade which will did you implement a model that achieved a certain level of loss or is efficient enough. Um in the um assignment every problem part has a number of points associated with it. And so that gives you a fairly granular level of what um</p>
+<p>grading looks like.</p>
+<p>Okay, let&#x27;s jump into tokenization. Okay, so um Andre Kapati</p>
+<h2 id="tokenizer-mechanics">Tokenizer mechanics</h2>
+<p>has this really nice video on tokenization and in general he makes a lot of these videos on um that uh actually inspired a lot of this class how you can build things from from scratch. Um so you should go check out some of his videos. Um so tokenization as we talked about it um is the process of taking raw text which is generally represented as unic code strings and um turning it into a set of integers essentially and where each integer is uh represents a token. Okay. So we need a procedure that encodes strings to tokens and decodes them back into strings. Um and the vocabulary size is just the number of values that a a token take on the number of the range of the integers. Okay, so just to give you an example of how tokenizers work, let&#x27;s uh play around with this really nice website which allows you to look at different tokenizers and just type in something like, you know, hello uh you know, hello or or whatever. Um maybe</p>
+<p>I&#x27;ll um do this. Um and one thing it does is it shows you the list of integers. This is the output of tokenizer. It also nicely maps out um the decomposition of the the original string into a bunch of segments. Um and a few few things to kind of note. First of all, the space is part of a token. So unlike classical NLP where the space just kind of disappears everything is accounted for. These are meant to be kind of reversible operations tokenization. Um and by convention it you know for whatever reason the the space is usually preceding um the token. Um, also notice that you know hello is a completely different token than uh space hello which um you might make you a little bit squeamish but you know seems and it can cause problems but um that&#x27;s just how it is. Question I was going to ask is the space theme leading instead of trailing intentional or is it just an artifact of the BP process? Um so the question is is</p>
+<p>the spacing before intentional or not? Um so in the BP process I will talk about you actually pre-tokenize and then you um and then you tokenize each part and I think the pre-tokenizer it does put the space in the front. So it is built into the algorithm. You could put it at the end but I think it probably makes more sense to put in the beginning. Um but um actually don&#x27;t well it I guess it could go either way. It&#x27;s my sense. Um okay so then if you look at numbers um you see that um the numbers are chopped down into um different you know pieces. Um it&#x27;s a little bit kind of interesting that it&#x27;s left to right. So it&#x27;s definitely not grouping by thousands or anything like semantic. Um but anyway, I encourage you to kind of play with it and get a sense of what these existing tokenizers look like. Um so this is a tokenizer for GPT40 for example. Um so there&#x27;s some observations um that we made. Um, so if you look at</p>
+<p>the GB22 tokenizer, which will use this kind of as a reference. Um, okay, let me see if I can um, okay, hopefully this is let me know if this is too getting too small in the back. Um, you could take a string um, if you apply the GPD2 tokenizer, you get your indices. So it maps uh strings to indices and then you can decode to uh get back the string and this is just a sanity check to make sure that um you actually it round trips. Um another thing that&#x27;s I guess interesting to look at is this compression ratio which is if you look at the number of bytes divided by the number of tokens. So how many bytes are represented by a token and the answer here is 1.6.</p>
+<p>Okay, so every token represents 1.6 bytes of data. Okay, so that&#x27;s just a GPT tok to tokenizer that open air trained. Um to motivate kind of BPE, I want to go through a sequence of attempts. Like suppose you wanted to do tokenization. What would be the sort of the the simplest thing? The simplest thing is probably character-based tokenization. A unic code string is a sequence of unic code characters and each character can be converted into an integer in called a code point. Okay, so a maps to 97. Um the world emoji maps to 127,757 and you can see that it converts back. Okay. So you can define a tokenizer which simply um you know maps uh each character into a code point.</p>
+<p>Okay. So what&#x27;s one problem with this?</p>
+<p>Yeahression ratio is one. The compression ratio is one. Um so that&#x27;s uh well actually the compression ratio is not quite one because a character is not a bite. Um, but it&#x27;s it&#x27;s maybe not as good as you want. One problem with that, if you look at some code points, they&#x27;re actually really large, right? Um, so you&#x27;re basically allocating each like one slot in your vocabulary for every character uniformly. And some characters appear way more frequently than others. So this is um not a very effective use of your kind of budget. Okay. Um so the vocabulary size is you huge. I mean the vocabulary size being 127 is actually a big deal but um the bigger problem is that some characters are rare and this is inefficient use of the vocab.</p>
+<p>Um okay so the comparation ratio is um is 1.5 in this case because it&#x27;s the tokens uh sorry the number of bytes per token and um a character can be multiple bytes. Okay so that was a very kind of naive approach. Um on the other hand you can do bite based tokenization. Okay so unic code strings can be represented as sequence of bytes. um because um every string can just be you know converted into bytes. Okay. So some um you know a is already just kind of one bite but some uh characters uh take up as many as four bytes and this is using the UTF8 kind of encoding of unic code. There&#x27;s other encodings but this is the most common one that&#x27;s dynamic.</p>
+<p>So let&#x27;s just convert everything into bytes um and see what happens. So if you do it into bytes now all the indices are between 0 and 256 because there only 256 possible values for a bite by definition. Um so your vocabulary is very you know small and each bite is I guess not all bytes are equally used but you know it&#x27;s not too you don&#x27;t have that many sparsity you know problems. Um but what&#x27;s the problem with bite- based encoding?</p>
+<p>Long sequences. Yeah, long sequences. So this is I mean in some ways I really wish by coding would work. It&#x27;s the most elegant thing but um but you have long sequences your compression ratio is one. One bite per token. And this is just terrible. A compression ratio of one is terrible because your sequences will be really long. attention is quadratic naively in the sequence lane. So this is you&#x27;re just gonna have a bad time in terms of efficiency. Okay, so that wasn&#x27;t really good. Um so now the thing that you might think about is well maybe we kind of have to be adaptive here, right? like you know we can&#x27;t allocate a character or a bite per token but maybe some tokens can represent lots of bytes and some tokens can represent few bytes. So one way to do this is wordbased tokenization and this is something that was actually very classic in in NLP right so here&#x27;s a string and you can just uh you know split it into let&#x27;s a sequence of segments</p>
+<p>okay and you can call each of these tokens so you just use a regular expression um here&#x27;s a different regular expression um that GPT2 uses to pre-tokenize um and it just splits um um you know your string into a sequence of strings. So um and then what you do with each segment is that you assign each of these to an integer and then you&#x27;re done. Okay. So what&#x27;s the problem with this?</p>
+<p>Yeah. So the problem is that your vocabulary size is sort of unbounded. Well, not maybe not quite unbounded, but um you don&#x27;t know how big it is, right? Because on a given new input, you might get a segment that&#x27;s uh that just you&#x27;ve never seen before. And that&#x27;s actually kind of a big problem. This is actually wordbased is a really big pain in the butt because um you know some real words are rare and um you know you actually it&#x27;s it&#x27;s really annoying because new words have to receive this UNC token um and if you&#x27;re not careful about how you compute you know the perplexity um then you&#x27;re just going to mess up um so you know wordbased isn&#x27;t I think it captures the right intuition of adapt activity um but it&#x27;s not exactly what we want here.</p>
+<p>So here we&#x27;re finally going to talk about the BPE encoding or by pair encoding um so this was actually a very old algorithm uh developed by Philip Gage in 94 for data compression um and it was first introduced into NLP for neural machine translation. So before papers that did machine translation or any basically all NLP used wordbased tokenization and again wordbased was a pain. So um you know this paper pioneered this idea well we can use this nice algorithm form 94 and we can just make um the tokenization kind of roundtrip and we don&#x27;t have to deal with anks or any of that stuff. And then finally this entered the kind of language modeling um era of through GPD2 which was uh trained on using the BP tokenizer. Um okay so the basic idea is instead of defining some sort of pre preconceived notion of how to split up we&#x27;re going to train the tokenizer on raw text. That&#x27;s a basic kind of insight if you will. And so organically common</p>
+<p>sequences um that um span multiple characters we&#x27;re going to try to represent as one token and rare sequences are going to be represented by multiple tokens. Um there&#x27;s a sort of a slight detail which is to for efficiency the GPD2 paper um uses warbased tokenizer as a sort of pre-processing to break it up into segments and then runs BP on each of the segments which is what you&#x27;re going to do in this class as well. Um the algorithm BP is actually very simple. So we first convert the string into a sequence of bytes which we already did when we talked about bybased tokenization. And now we&#x27;re going to successfully merge the most common pair of adjacent tokens over and over again.</p>
+<p>So the intuition is that if a pair of tokens that shows up a lot, then we&#x27;re going to compress it into one token. We&#x27;re going to dedicate space for that. Okay. So let&#x27;s walk through what this algorithm looks like. So we&#x27;re going to use this cat and hat as an example and um uh we&#x27;re going to convert this into a sequence of um integers. These are the bytes. Um, and then we&#x27;re going to keep track of what we&#x27;ve merged. So remember merges is a map from two integers which can represent bytes or other you know ex preexisting tokens and we&#x27;re going to create a new token and um the vocab is just going to kind of be a handy way to represent the index to to bytes. Um, okay. So, we&#x27;re going to the BP algorithm. I mean, it&#x27;s very simple. So, I&#x27;m just actually going to run through the code. You&#x27;re going to um do this number of times. So, number is three. In this case, we&#x27;re going to first count up uh the number of occurrences of pairs of bytes. So, um</p>
+<p>hopefully this doesn&#x27;t become too small. So, we&#x27;re going to just step through um this uh sequence and we&#x27;re going to see that. Okay. So, what&#x27;s 116 104? We&#x27;re going to increment that count 104 101 increment that count. We&#x27;re go through the sequence and we&#x27;re going to count up um you know the bytes. Okay. So now after we have these counts, we&#x27;re going to um find the pair that occurs the most number of times. Um so I guess there&#x27;s multiple ones, but we&#x27;re just going to break ties and say 116 and 104. Okay, so that occurred twice. Um, so now we&#x27;re going to merge that pair.</p>
+<p>So we&#x27;re going to create a new slot in our vocab, which is going to be 256. So so far it&#x27;s 0 through 255, but now we&#x27;re expanding the vocab to 256. And we&#x27;re going to say every time we see 116 and 104, we&#x27;re going to replace it with 256. Okay? And then we&#x27;re going to um just apply that merge to our our training set. So after we do that, the the um 116 104 became 256 and this 256 remember occurred twice. Okay. So now we&#x27;re just going to loop through this algorithm, you know, one more time. The second time, um it decided to merge 256 and 101. Um, and now I&#x27;m going to replace uh that in indices. Um, and notice that the indices is going to shrink, right?</p>
+<p>Because our compression ratio is getting better as we make room for more vocabulary items and we have a greater vocabulary to represent everything. Okay, so let me do this one more time. Um, and then the next merge is 2573. And this is shrinking one more time. Okay. And then now we&#x27;re done. Okay. So let&#x27;s try out this tokenizer. So we have the string, the quick brown fox. Um we&#x27;re going to encode into a sequence of indices. And then we&#x27;re going to use our BP tokenizer to decode. Let&#x27;s actually step through what that uh you know looks like. Um uh this well actually maybe decoding isn&#x27;t actually interesting. Sorry I should have gone through the encode. Um let&#x27;s go back to encode.</p>
+<p>Um so encode um you take a string you convert to indices and you just replay the merges in and importantly in the order that they occur. So, I&#x27;m going to replay um these merges and and then um and then I&#x27;m going to get my indices. Okay. And then verify that this uh works. Okay. So, that was um it&#x27;s pretty simple. The you know it&#x27;s because it&#x27;s simple it&#x27;s it was also very inefficient. For example, encode loops over the merges. You should only loops over the merges that matter. Um, and there&#x27;s some other bells and whistles like there&#x27;s special tokens, pre-tokenization. And so in your assignment, you&#x27;re going to essentially take this as a starting point and or I mean I guess you should implement your own from scratch. Um, but your goal is to make the implementation, you know, fast. Um, and you can like paralyze it if you want. Um, you can go have fun. Okay, so summary of tokenization.</p>
+<p>So tokenizer maps between strings and sequences of integers. Um we looked at characterbased, bite-based, wordbased. They&#x27;re highly suboptimal uh for various reasons. BPE is a very old algorithm from 94 that still proves to be effective horistic. And the important thing is that looks at your corpus statistics to make sensible decisions about how to best adaptively allocate um vocabulary to represent sequences of characters. Um and you know I hope that one day I won&#x27;t have to give this lecture because we&#x27;ll just have architectures that um map fromtes but until then um we&#x27;ll have to deal with tokenization. Okay. So that&#x27;s it for today. Next time we&#x27;re going to dive into the details of PyTorch um and give you the building blocks and pay attention to resource accounting. All of you have presumably implemented, you know, PyTorch programs, but we&#x27;re going to really look at where all the flops are going. Okay, see you next time.</p>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Lecture 1</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Converted from lecture video • Generated 2026-10-15 15:11
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=7">
+<script type="application/json" id="rr-notes">{}</script>
+<script src="../../assets/annotate.js?v=7" data-rr-book="cs336-language-modeling-from-scratch" data-rr-page="lecture01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=7"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+</body>
+</html>

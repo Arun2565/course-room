@@ -1,0 +1,1014 @@
+/* site.css — blend annotated-reader chapter pages with the personal site design.
+ * Injected after the chapter page's own <style>, so these rules win.
+ * Uses the chapter page's existing CSS vars (--bg, --ink, --accent, ...)
+ * plus the personal-site vars (--text, --text2, ...) for injected chrome. */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Spectral:ital,wght@0,200;0,300;0,400;1,200;1,300;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* Bundled reader font (F:/Downloads/adobe-caslon-pro, Regular only —
+ * browsers synthesize bold/italic from it) */
+@font-face {
+  font-family: 'Adobe Caslon Pro';
+  src: url('fonts/ACaslonPro-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Aa font switcher (chapter-toc.js and epub-reader.js set data-rfont, saved
+   as rr-font). --rr-readfont is the one place the stack is defined, so the
+   prose and both chapter sidebars can never drift apart. */
+:root { --rr-readfont: 'Spectral', Georgia, serif; }
+:root[data-rfont="newsreader"] { --rr-readfont: 'Newsreader', Georgia, serif; }
+:root[data-rfont="source-serif"] { --rr-readfont: 'Source Serif 4', Georgia, serif; }
+:root[data-rfont="atkinson"] { --rr-readfont: 'Atkinson Hyperlegible', Verdana, sans-serif; }
+:root[data-rfont="caslon"] { --rr-readfont: 'Adobe Caslon Pro', 'Cormorant Garamond', Georgia, serif; }
+:root[data-rfont="cormorant"] { --rr-readfont: 'Cormorant Garamond', Georgia, serif; }
+
+.reader-content {
+  font-family: var(--rr-readfont) !important;
+}
+#epub-content {
+  font-family: var(--rr-readfont);
+}
+/* the chapter sidebar in both the reader and the static chapter pages */
+.toc-chapter {
+  font-family: var(--rr-readfont) !important;
+}
+:root[data-rfont="atkinson"] .reader-content {
+  line-height: 1.9 !important;
+}
+:root[data-rfont="atkinson"] #epub-content {
+  line-height: 1.9;
+}
+/* Cormorant runs small and light: give it a touch more size and air */
+:root[data-rfont="cormorant"] .reader-content {
+  font-size: 1.22rem !important;
+  line-height: 1.9 !important;
+}
+:root[data-rfont="cormorant"] #epub-content {
+  font-size: 1.14em;
+  line-height: 1.9;
+}
+
+:root {
+  --bg: #faf7f0;
+  --bg2: #f0ede6;
+  --surface: #f0ede6;
+  --ink: #000;
+  --ink-2: #333;
+  --accent: #8a6820;
+  --border: rgba(0,0,0,0.07);
+  --text: #000;
+  --text2: #333;
+  --text3: #555;
+  --border2: rgba(0,0,0,0.14);
+  --accent2: #b8502e;
+  --glow: rgba(138,104,32,0.06);
+}
+:root[data-theme="dark"] {
+  --bg: #0f0f0d;
+  --bg2: #161613;
+  --surface: #161613;
+  --ink: #d4cfc4;
+  --ink-2: #7a7770;
+  --accent: #b8a96a;
+  --border: rgba(255,255,255,0.07);
+  --text: #d4cfc4;
+  --text2: #7a7770;
+  --text3: #3f3e3c;
+  --border2: rgba(255,255,255,0.14);
+  --accent2: #c97b5a;
+  --glow: rgba(184,169,106,0.05);
+}
+
+/* Hide reader-specific chrome (replaced by injected site chrome) */
+.top-bar, .bottom-bar, .footer { display: none !important; }
+
+/* Body */
+body {
+  font-family: 'Spectral', Georgia, serif !important;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+/* Reader content — paper measure, larger and airier like the reference */
+.reader-content {
+  max-width: 700px !important;
+  padding: 24px 28px 60px !important;
+  font-size: 1.13rem !important;
+  line-height: 1.85 !important;
+}
+
+/* Headings — Cormorant Garamond */
+/* the book/chapter title follows the reading font too; section headings
+   (h2/h3) stay Cormorant */
+.reader-content h1 {
+  font-family: var(--rr-readfont) !important;
+  color: var(--ink) !important;
+}
+.reader-content h2, .reader-content h3 {
+  font-family: 'Cormorant Garamond', serif !important;
+  color: var(--ink) !important;
+}
+.reader-content h1 { font-size: 2.2rem !important; font-weight: 600 !important; }
+.reader-content h2 { font-size: 1.6rem !important; font-weight: 600 !important; }
+.reader-content h3 { font-size: 1.25rem !important; font-weight: 600 !important; color: var(--ink-2) !important; }
+
+/* Paragraphs */
+.reader-content p {
+  font-size: 1.13rem !important;
+  line-height: 1.85 !important;
+  color: var(--ink) !important;
+}
+
+/* Chapter title */
+.chapter-title {
+  text-align: left !important;
+  padding: 0 0 24px !important;
+  margin-bottom: 24px !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.chapter-title h1 { font-size: 2.4rem !important; font-weight: 700 !important; }
+.ann-badge {
+  background: var(--accent) !important;
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  border-radius: 2px !important;
+  padding: 4px 10px !important;
+}
+
+/* TOC panel */
+.toc-panel {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+.toc-header h3 {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--text3) !important;
+}
+.toc-chapter {
+  color: var(--ink) !important;
+  border-left: 3px solid transparent !important;
+}
+.toc-chapter:hover {
+  background: var(--glow) !important;
+  border-left-color: var(--accent) !important;
+}
+/* Progress bar */
+.progress-bar { background: var(--border) !important; }
+.progress-fill { background: var(--accent) !important; }
+
+/* Baked annotations */
+.ann-hl, .ann-note {
+  border-radius: 2px !important;
+  padding: 1px 2px !important;
+}
+
+/* Code blocks — blend with site surface */
+.reader-content pre, .reader-content pre.code {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+}
+.reader-content pre code {
+  color: var(--ink) !important;
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.85rem !important;
+}
+
+/* ---- Injected personal-site chrome ---- */
+.rr-site-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 48px 0 28px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.rr-brand-link { text-decoration: none; }
+.rr-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.8rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.rr-brand-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 300;
+  color: var(--text2);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.rr-brand-sub em { font-style: normal; color: var(--accent2); }
+.rr-header-actions { display: flex; gap: 8px; align-items: center; }
+.rr-header-actions button {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 13px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.rr-header-actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+.rr-site-nav {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  max-width: 680px;
+  margin: 0 auto 36px;
+  padding: 1px 0;
+}
+.rr-site-nav a {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text2);
+  text-decoration: none;
+  padding: 10px 16px 10px 0;
+}
+.rr-site-nav a:not(:first-child) { padding-left: 16px; border-left: 1px solid var(--border); }
+.rr-site-nav a:hover, .rr-site-nav a.active { color: var(--text); }
+
+.rr-site-footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 680px;
+  margin: 48px auto 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+.rr-site-footer a {
+  color: var(--text3);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.rr-site-footer a:hover { color: var(--accent); }
+
+/* ---- Reading progress bar at bottom ---- */
+.progress-bar {
+  top: auto !important;
+  bottom: 0 !important;
+  left: 260px !important;
+  right: 0 !important;
+}
+
+/* ---- TOC as fixed left sidebar (desktop visible, hamburger toggles) ---- */
+body.epub-page { padding-left: 0 !important; }
+.toc-panel {
+  transform: translateX(0) !important;
+  width: 260px !important;
+}
+body.toc-hidden .toc-panel,
+.toc-panel.rr-hidden {
+  transform: translateX(-100%) !important;
+}
+body {
+  padding-left: 260px;
+}
+body.toc-hidden {
+  padding-left: 0;
+}
+body.toc-hidden .progress-bar {
+  left: 0 !important;
+}
+/* hamburger affordance: highlighted when TOC is closed */
+#rr-toc-btn[aria-expanded="false"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Mobile: slide-out panel */
+@media (max-width: 900px) {
+  body { padding-left: 0; }
+  body.toc-hidden { padding-left: 0; }
+  .progress-bar { left: 0 !important; }
+  .toc-panel,
+  body.toc-hidden .toc-panel {
+    transform: translateX(-100%) !important;
+  }
+  .toc-panel.open {
+    transform: translateX(0) !important;
+  }
+}
+
+/* ---- TOC sub-heading links (rebuilt by assemble.py fix_toc) ---- */
+.toc-nav a.toc-heading {
+  display: block !important;
+  color: var(--ink-2) !important;
+  text-decoration: none !important;
+  font-size: 0.82rem !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+}
+.toc-nav a.toc-heading:hover { color: var(--accent) !important; }
+
+/* ---- In-browser EPUB reader (open-epub.html) ---- */
+#epub-upload {
+  border: 1px dashed var(--border2);
+  border-radius: 4px;
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 28px;
+  cursor: pointer;
+}
+#epub-upload:hover { border-color: var(--accent); }
+#epub-upload input { display: none; }
+#epub-upload .epub-up-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+#epub-upload .epub-up-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+#epub-urlrow {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 22px 28px;
+  margin-bottom: 28px;
+}
+#epub-urlrow .epub-up-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+#epub-urlrow .epub-up-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+.epub-url-flex { display: flex; gap: 10px; }
+#epub-url {
+  flex: 1;
+  min-width: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  padding: 9px 12px;
+}
+#epub-url:focus { outline: none; border-color: var(--accent); }
+#epub-fetch {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 9px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+#epub-fetch:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+#epub-fetch:disabled { opacity: 0.5; cursor: wait; }
+#epub-url-status { margin-top: 10px; min-height: 1em; }
+#epub-server-help {
+  margin-top: 14px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 14px 16px;
+  background: var(--bg2);
+}
+.epub-help-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+.epub-help-text { font-size: 0.9rem; color: var(--text2); margin-bottom: 10px; }
+.epub-help-cmd {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.epub-help-cmd code {
+  flex: 1;
+  min-width: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.epub-help-row { display: flex; gap: 12px; align-items: center; }
+#epub-server-help button {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 7px 13px;
+  border-radius: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#epub-server-help button:hover { border-color: var(--accent); color: var(--accent); }
+#epub-err {
+  display: none;
+  border: 1px solid #d93025;
+  color: #d93025;
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+.epub-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.epub-row-info { flex: 1; }
+.epub-row-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-style: italic;
+}
+.epub-row-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.epub-row button {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 7px 13px;
+  border-radius: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.epub-row button:hover { border-color: var(--accent); color: var(--accent); }
+.epub-row button.epub-del:hover { border-color: #d93025; color: #d93025; }
+#epub-bookhead { margin: 2px 0 16px; }
+#epub-booktitle {
+  font-family: var(--rr-readfont);
+  font-size: 2rem;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.15;
+  color: var(--text);
+}
+#epub-reader .rr-header-actions { margin-bottom: 18px; flex-wrap: wrap; }
+#epub-reader .rr-sep { flex: 1; min-width: 8px; }
+#epub-reader .rr-header-actions button.on { border-color: var(--accent); color: var(--accent); }
+/* article mode: one flowing page, no chapters chrome */
+/* no sidebar in article mode, so drop its reserved gutter: otherwise the
+   page keeps a 260px left pad and reads right-aligned */
+body.epub-page.epub-reading.rr-article { padding-left: 0 !important; }
+/* the article body already opens with its own h1, so the reader header
+   title would print it twice */
+body.rr-article #epub-toc-btn { display: none !important; }
+body.rr-article #epub-booktitle { display: none; }
+/* reading settings: font size + measure (body dataset set by epub-reader.js) */
+#epub-content { max-width: 680px; margin: 0 auto; }
+body[data-rr-fsize="s"] #epub-content { font-size: 0.95rem; }
+body[data-rr-fsize="l"] #epub-content { font-size: 1.18rem; }
+body[data-rr-wide="1"] .wrap { max-width: 860px; }
+body[data-rr-wide="1"] #epub-content { max-width: 800px; }
+/* dark mode for converted-article nodes (plain tags, no inline styles) */
+:root[data-theme="dark"] #epub-content { color: var(--text); }
+:root[data-theme="dark"] #epub-content p { color: var(--text); }
+:root[data-theme="dark"] #epub-content h1,
+:root[data-theme="dark"] #epub-content h2,
+:root[data-theme="dark"] #epub-content h3,
+:root[data-theme="dark"] #epub-content h4 { color: var(--text); }
+:root[data-theme="dark"] #epub-content pre {
+  background: #1d1d1a !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: var(--text);
+  border-radius: 4px;
+  padding: 0.8em;
+}
+:root[data-theme="dark"] #epub-content code { background: rgba(255, 255, 255, 0.1) !important; }
+:root[data-theme="dark"] #epub-content blockquote { background: rgba(184, 169, 106, 0.07) !important; }
+:root[data-theme="dark"] #epub-content a { color: var(--accent); }
+:root[data-theme="dark"] #epub-content .caption,
+:root[data-theme="dark"] #epub-content .meta { color: var(--text2); }
+/* font picker menu (opened by the Aa button, built by epub-reader.js) */
+#epub-font-menu {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 230px;
+  max-width: calc(100vw - 16px);
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  padding: 6px;
+}
+#epub-font-menu.show { display: flex; }
+#epub-font-menu button {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: var(--text);
+  font-size: 1.05rem;
+  text-align: left;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+#epub-font-menu button:hover { background: var(--glow); }
+#epub-font-menu button.on { outline: 1px solid var(--accent); }
+#epub-font-menu .rr-ff-aa { font-size: 0.85rem; color: var(--text3); }
+#epub-font-menu button.on .rr-ff-aa { color: var(--accent); }
+/* reader navbar: nav group left, tool group right */
+#epub-reader .rr-nav-group, #epub-reader .rr-tool-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#epub-reader .rr-nav-group { margin-bottom: 0; }
+#epub-reader .rr-tool-group { margin-bottom: 18px; }
+@media (min-width: 560px) {
+  #epub-reader .rr-nav-group { float: left; margin-bottom: 18px; }
+  #epub-reader .rr-tool-group { float: right; margin-bottom: 18px; }
+  #epub-bookhead { clear: both; }
+}
+/* settings panel (opened by the Settings button, built by epub-reader.js) */
+#epub-settings {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 280px;
+  max-width: calc(100vw - 16px);
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  padding: 8px;
+}
+#epub-settings.show { display: flex; }
+.rr-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 8px;
+}
+.rr-set-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.rr-seg {
+  display: flex;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.rr-seg button {
+  border: none;
+  background: none;
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rr-seg button + button { border-left: 1px solid var(--border); }
+.rr-seg button:hover { color: var(--accent); }
+.rr-seg button.on { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); }
+/* sidebar states for the epub reader */
+body.epub-page.epub-reading { padding-left: 260px !important; }
+body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
+@media (max-width: 900px) {
+  body.epub-page.epub-reading { padding-left: 0 !important; }
+  #epub-booktitle { font-size: 1.6rem; }
+}
+.toc-chapter.active {
+  background: var(--glow) !important;
+  border-left-color: var(--accent) !important;
+}
+/* fixed chapter sidebar for the epub reader (self-contained: this page
+   has no skill-generated reader CSS) */
+#epub-toc {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 260px !important;
+  height: 100vh;
+  background: var(--bg) !important;
+  border-right: 1px solid var(--border) !important;
+  z-index: 200;
+  display: flex !important;
+  flex-direction: column !important;
+  transform: translateX(0) !important;
+}
+#epub-toc.rr-hidden { transform: translateX(-100%) !important; }
+#epub-toc .toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+#epub-toc .toc-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+}
+#epub-toc .toc-nav { display: block; flex: 1; overflow-y: auto; padding: 16px 0; }
+#epub-toc .toc-chapter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-family: var(--rr-readfont) !important;
+  font-size: 0.9rem !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  color: var(--text);
+  border-left: 3px solid transparent;
+}
+#epub-toc .toc-chapter:hover, #epub-toc .toc-chapter.active {
+  background: var(--glow);
+  border-left-color: var(--accent);
+}
+#epub-toc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 199;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#epub-toc-overlay.show { opacity: 1; pointer-events: auto; }
+@media (max-width: 900px) {
+  #epub-toc { transform: translateX(-100%) !important; }
+  #epub-toc.open { transform: translateX(0) !important; }
+}
+#epub-content {
+  font-family: var(--rr-readfont);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  padding: 12px 0 80px;
+}
+#epub-content h1, #epub-content h2, #epub-content h3, #epub-content h4 {
+  font-family: inherit;
+  line-height: 1.25;
+  margin: 1.4em 0 0.6em;
+}
+/* section breaks, Substack-style: h2s are plain with generous air above;
+   the author's own <hr> dividers render as full-width hairlines */
+#epub-content h2 {
+  margin: 2.2em 0 0.8em;
+  padding-top: 0;
+  border-top: none;
+}
+#epub-content hr {
+  border: none;
+  border-top: 1px solid var(--border2);
+  margin: 2em 0;
+  max-width: none;
+}
+/* Substack-style article header: gray subtitle, semibold name, small date */
+#epub-content .subtitle {
+  font-size: 1.15em;
+  line-height: 1.5;
+  color: var(--text2);
+  margin: 0.2em 0 0.8em;
+}
+#epub-content .byline {
+  font-weight: 600;
+  margin: 0.9em 0 0.1em;
+}
+#epub-content .dateline {
+  font-size: 0.85em;
+  color: var(--text2);
+  margin: 0 0 2em;
+}
+#epub-content h1 { font-size: 2rem; }
+#epub-content h2 { font-size: 1.6rem; }
+#epub-content h3 { font-size: 1.3rem; font-style: italic; }
+#epub-content p { margin: 0 0 1.1em; }
+#epub-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.2em auto;
+}
+#epub-content a { color: var(--accent); overflow-wrap: anywhere; }
+/* footnote markers: clean superscript, no underline wash */
+#epub-content a.fnref { text-decoration: none; font-weight: 600; }
+#epub-content a.fnref sup { font-size: 0.75em; color: var(--accent); }
+/* pull-quotes / sponsor notes: accent left rule like the standalone CSS */
+#epub-content blockquote {
+  margin: 1.2em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid var(--accent);
+  background: var(--glow);
+  font-style: italic;
+}
+#epub-content blockquote p { margin: 0.4em 0; }
+
+/* ---- Floating TOC toggle (assets/chapter-toc.js creates #rr-toc-fab) ----
+ * The header toggle scrolls away and the skill's fixed top-bar is hidden,
+ * so this always-visible button is the reliable open/close switch. */
+#rr-toc-fab {
+  position: fixed;
+  left: 20px;
+  bottom: 24px;
+  z-index: 150;
+  background: var(--bg2, #f0ede6);
+  border: 1px solid var(--border2, rgba(0, 0, 0, 0.14));
+  color: var(--text2, #333);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+}
+#rr-toc-fab:hover {
+  border-color: var(--accent, #8a6820);
+  color: var(--accent, #8a6820);
+}
+
+/* ---- In-chapter CONTENTS card: same tokens as the reference page's
+ * floating TOC (bg2 card, mono links, gold active + glow) ----
+ * Static block above the text by default: never wraps or covers prose.
+ * On wide screens it pins into a reserved right gutter (see bottom). */
+.rr-contents {
+  width: auto;
+  margin: 0 0 20px;
+  background: var(--bg2, #f0ede6);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.07));
+  border-radius: 4px;
+  padding: 18px 18px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+}
+.rr-contents-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3, #555);
+  margin-bottom: 12px;
+}
+.rr-contents ol { list-style: none; margin: 0; padding: 0; }
+.rr-contents li { margin: 0; padding: 0; }
+.rr-contents a {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  color: var(--text2, #333);
+  text-decoration: none;
+  padding: 6px 8px;
+  border-left: 2px solid transparent;
+  line-height: 1.5;
+  border-radius: 0 3px 3px 0;
+}
+.rr-contents a:hover { color: var(--accent, #8a6820); }
+.rr-contents a.active {
+  color: var(--accent, #8a6820);
+  border-left-color: var(--accent, #8a6820);
+  background: var(--glow, rgba(138, 104, 32, 0.06));
+}
+.rr-contents a.rr-sub { font-size: 0.64rem; padding-left: 22px; }
+.rr-contents-num { margin-right: 6px; }
+@media (min-width: 1280px) {
+  /* reserve a right gutter on chapter pages and pin the card in it,
+     so it stays right without ever touching body text */
+  body.rr-chapter { padding-right: 270px; }
+  body.rr-chapter .rr-contents {
+    position: fixed;
+    top: 140px;
+    right: 16px;
+    width: 240px;
+    margin: 0;
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+    z-index: 5;
+  }
+  /* same reserved gutter + pinned card for the in-browser EPUB reader
+     when the chapter built a contents card */
+  body.epub-reading.epub-has-contents { padding-right: 270px; }
+  body.epub-reading.epub-has-contents .rr-contents {
+    position: fixed;
+    top: 140px;
+    right: 16px;
+    width: 240px;
+    margin: 0;
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+    z-index: 5;
+  }
+  body.rr-chapter .progress-bar { left: 260px !important; right: 270px !important; }
+  body.rr-chapter.toc-hidden .progress-bar { left: 0 !important; right: 270px !important; }
+}
+.reader-content h2[id], .reader-content h3[id] { scroll-margin-top: 16px; }
+#epub-content h2[id], #epub-content h3[id] { scroll-margin-top: 16px; }
+
+/* ---- Syntax-colored code blocks (token spans by epub-reader.js) ---- */
+#epub-content pre.rr-hl {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  tab-size: 4;
+}
+#epub-content pre.rr-hl, #epub-content pre.rr-hl code {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+#epub-content .tok-k { color: #b8502e; font-weight: 600; }
+#epub-content .tok-s { color: #236b3d; }
+#epub-content .tok-c { color: #8a8578; font-style: italic; }
+#epub-content .tok-n { color: #2050a0; }
+:root[data-theme="dark"] #epub-content pre.rr-hl {
+  background: #1d1d1a;
+  border-color: rgba(255, 255, 255, 0.14);
+  border-left-color: var(--accent);
+}
+:root[data-theme="dark"] #epub-content .tok-k { color: #c99a5e; }
+:root[data-theme="dark"] #epub-content .tok-s { color: #7AE8A8; }
+:root[data-theme="dark"] #epub-content .tok-c { color: #7a7770; }
+:root[data-theme="dark"] #epub-content .tok-n { color: #8AB8FF; }
+
+/* ---- Next-chapter footer (assets/chapter-toc.js builds .rr-next) ---- */
+.rr-next {
+  margin: 48px 0 8px;
+  padding: 22px 4px 0;
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.07));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rr-next-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3, #555);
+}
+.rr-next-link {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--ink, #000);
+  text-decoration: none;
+  line-height: 1.3;
+}
+.rr-next-link:hover { color: var(--accent, #8a6820); }
+.rr-next-arrow { color: var(--accent, #8a6820); }
+
+/* ---- Slim sticky reader bar (reference look) ---- */
+.rr-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: var(--bg, #faf7f0);
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.07));
+}
+.rr-back {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text2, #333);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.rr-back:hover { color: var(--accent, #8a6820); }
+.rr-toptitle {
+  flex: 1;
+  text-align: center;
+  font-family: var(--rr-readfont);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--text, #000);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.rr-topbar .rr-header-actions { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 640px) {
+  .rr-toptitle { display: none; }
+  .rr-topbar { padding: 8px 12px; }
+}
+
+/* ---- Dark-mode overrides for skill-baked light components ----
+ * Chapter pages ship an inline <style> with hardcoded light hex colors
+ * (tables, note boxes, inline code). These rules repaint them for dark
+ * mode; !important beats the skill's own !important (site.css loads later). */
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="dark"] .reader-content table {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"] .reader-content th {
+  background: #1d1d1a !important;
+  border-bottom-color: rgba(255, 255, 255, 0.22) !important;
+  color: var(--ink) !important;
+}
+:root[data-theme="dark"] .reader-content td {
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  border-right-color: rgba(255, 255, 255, 0.07) !important;
+}
+:root[data-theme="dark"] .reader-content tr:nth-of-type(even) {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+:root[data-theme="dark"] .reader-content .note,
+:root[data-theme="dark"] .reader-content [data-type="note"] {
+  background: #1d1c17 !important;
+  border-color: rgba(184, 169, 106, 0.4) !important;
+}
+:root[data-theme="dark"] .reader-content p code,
+:root[data-theme="dark"] .reader-content li code,
+:root[data-theme="dark"] .reader-content td code {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+:root[data-theme="dark"] .reader-content blockquote {
+  background: rgba(184, 169, 106, 0.07) !important;
+}

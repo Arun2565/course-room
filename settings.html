@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings — Reading Room</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23faf7f0'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%238a6820' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=DM+Mono:wght@300;400&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf7f0;--bg2:#f0ede6;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.14);--text:#1a1815;--text2:#55534e;--text3:#8a867e;--accent:#8a6820;--danger:#a33b2a}
+:root[data-theme="dark"]{--bg:#0f0f0d;--bg2:#161613;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#d4cfc4;--text2:#7a7770;--text3:#3f3e3c;--accent:#b8a96a;--danger:#c96a55}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Spectral',Georgia,serif;font-weight:300}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase}
+.topbar a{color:var(--text2);text-decoration:none}
+.topbar a:hover{color:var(--accent)}
+.topbar button{background:none;border:1px solid var(--border2);border-radius:3px;color:var(--text2);font:inherit;padding:6px 12px;cursor:pointer}
+.topbar button:hover{color:var(--accent);border-color:var(--accent)}
+h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:2.2rem;margin:34px 0 6px}
+.banner{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 18px;font-size:0.95rem;font-style:italic;color:var(--text2);margin:0 0 30px}
+h2{font-family:'DM Mono',monospace;font-weight:400;font-size:0.72rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--text3);margin:34px 0 12px;display:flex;align-items:center;gap:14px}
+h2::after{content:'';flex:1;height:1px;background:var(--border)}
+.streak-row{display:flex;gap:12px}
+.streak-card{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:18px;text-align:center}
+.streak-num{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:600;line-height:1}
+.streak-lab{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-top:6px}
+.book{display:flex;align-items:baseline;gap:12px;padding:12px 2px;border-top:1px solid var(--border);text-decoration:none;color:inherit}
+.book:last-child{border-bottom:1px solid var(--border)}
+.book-title{font-size:1.02rem;flex:1}
+.book-title em{font-style:italic}
+.book-pct{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);white-space:nowrap}
+.book-pct.done{color:var(--accent)}
+.empty{color:var(--text3);font-style:italic;padding:8px 2px}
+.note{border-top:1px solid var(--border);padding:14px 2px}
+.note:last-child{border-bottom:1px solid var(--border)}
+.note-meta{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.06em;color:var(--text3);margin-bottom:6px}
+.note-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.note-meta a{color:var(--text2);text-decoration:none}
+.note-meta a:hover{color:var(--accent)}
+.note-quote{font-style:italic;color:var(--text2);font-size:0.92rem;line-height:1.6;border-left:2px solid var(--border2);padding-left:12px;margin:0 0 8px}
+.note-text{font-size:0.98rem;line-height:1.7;margin:0}
+.backup-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+.btn{font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--bg2);border:1px solid var(--border2);border-radius:3px;color:var(--text);padding:10px 18px;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+.backup-note{font-size:0.88rem;font-style:italic;color:var(--text3);margin:12px 0 0;line-height:1.7}
+.status{font-family:'DM Mono',monospace;font-size:0.72rem;margin-top:10px;min-height:1.2em;color:var(--accent)}
+@media (max-width:520px){.wrap{padding:0 18px 60px}.streak-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a href="index.html">&#8592; Library</a>
+    <button id="theme-btn" onclick="toggleTheme()">&#9789; dark</button>
+  </div>
+  <h1>Settings</h1>
+  <p class="banner">No account needed. Your finished list, notes and streak are saved in this browser. Export them below.</p>
+
+  <h2>Streak</h2>
+  <div class="streak-row">
+    <div class="streak-card"><div class="streak-num" id="st-current">0</div><div class="streak-lab">day streak &#128293;</div></div>
+    <div class="streak-card"><div class="streak-num" id="st-total">0</div><div class="streak-lab">days reading</div></div>
+    <div class="streak-card"><div class="streak-num" id="st-notes">0</div><div class="streak-lab">notes written</div></div>
+  </div>
+
+  <h2>Finished</h2>
+  <div id="list-done"><p class="empty">Nothing finished yet — scroll a book to the end and it lands here.</p></div>
+
+  <h2>Currently reading</h2>
+  <div id="list-reading"><p class="empty">Open any book and your place is kept here.</p></div>
+
+  <h2>My notes</h2>
+  <div id="list-notes"><p class="empty">No notes yet — select text in any chapter, then add a note.</p></div>
+
+  <h2>Backup</h2>
+  <div class="backup-row">
+    <button class="btn" id="btn-export">Export data</button>
+    <button class="btn" id="btn-import">Import data</button>
+    <button class="btn danger" id="btn-clear">Erase everything</button>
+    <input type="file" id="file-import" accept="application/json,.json" hidden>
+  </div>
+  <div class="status" id="backup-status"></div>
+  <p class="backup-note" id="backup-size"></p>
+  <p class="backup-note">The export holds every highlight, note, reading position, finished book and streak day in one file. Move it to another browser or computer with Import. Books added from a link (Your Books) keep their notes in this browser; re-add the same link there and its file returns to the shelf.</p>
+</div>
+<script src="assets/local.js?v=2"></script>
+<script>
+(function () {
+  'use strict';
+  try {
+    var saved = window.localStorage ? window.localStorage.getItem('rr-theme') : null;
+    if (saved === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); syncBtn(true); }
+  } catch (e) {}
+  function syncBtn(dark) {
+    var b = document.getElementById('theme-btn');
+    if (b) b.innerHTML = dark ? '&#9728; light' : '&#9789; dark';
+  }
+  window.toggleTheme = function () {
+    var root = document.documentElement, dark = root.getAttribute('data-theme') !== 'dark';
+    if (dark) root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+    try { window.localStorage.setItem('rr-theme', dark ? 'dark' : 'light'); } catch (e) {}
+    syncBtn(dark);
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pretty(slug) {
+    return String(slug).replace(/[-_]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
+  try { if (window.RR) window.RR.touch(); } catch (e) {}
+
+  /* streak + counts */
+  var notesCount = 0, hlCount = 0, marks = [];
+  try {
+    var st = window.RR.streak();
+    document.getElementById('st-current').textContent = st.current;
+    document.getElementById('st-total').textContent = st.total;
+    marks = window.RR.allMarks();
+    marks.forEach(function (m) { if (m.note) notesCount++; else hlCount++; });
+    document.getElementById('st-notes').textContent = notesCount;
+  } catch (e) {}
+
+  /* book catalogue: titles + chapters from the hub, else slug fallback */
+  function catalogue() {
+    return fetch('index.html', { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('no index');
+      return r.text();
+    }).then(function (html) {
+      var out = {}, re = /<a class="bk-lib"[^>]*data-book="([^"]+)"[^>]*data-chapters="([^"]*)"[^>]*>[\s\S]*?<span class="bk-lib-title">(.*?)<\/span>/g, m;
+      while ((m = re.exec(html))) {
+        var div = document.createElement('div');
+        div.innerHTML = m[3];
+        out[m[1]] = { title: div.textContent, chapters: (m[2] || '').split(',').filter(Boolean) };
+      }
+      return out;
+    }).catch(function () { return {}; });
+  }
+
+  catalogue().then(function (cat) {
+    var prog = {};
+    try { prog = window.RR.bookProgress(); } catch (e) {}
+    var done = [], reading = [];
+    Object.keys(prog).forEach(function (slug) {
+      var files = (cat[slug] && cat[slug].chapters && cat[slug].chapters.length)
+        ? cat[slug].chapters : Object.keys(prog[slug]);
+      if (!files.length) return;
+      var sum = 0;
+      files.forEach(function (f) { sum += Math.min(100, prog[slug][f] || 0); });
+      var avg = Math.round(sum / files.length);
+      var entry = {
+        slug: slug,
+        title: (cat[slug] && cat[slug].title) || pretty(slug),
+        avg: avg, file: files[0], n: files.length
+      };
+      if (avg >= 100) done.push(entry);
+      else if (avg > 0) reading.push(entry);
+    });
+    reading.sort(function (a, b) { return b.avg - a.avg; });
+
+    function bookRow(b, finished) {
+      var a = document.createElement('a');
+      a.className = 'book';
+      a.href = 'books/' + b.slug + '/' + b.file;
+      var t = document.createElement('span');
+      t.className = 'book-title';
+      t.innerHTML = '<em>' + esc(b.title) + '</em>';
+      var p = document.createElement('span');
+      p.className = 'book-pct' + (finished ? ' done' : '');
+      p.textContent = finished ? '\u2713 Finished' : b.avg + '% \u00b7 Continue';
+      a.appendChild(t);
+      a.appendChild(p);
+      return a;
+    }
+    if (done.length) {
+      var d = document.getElementById('list-done');
+      d.innerHTML = '';
+      done.forEach(function (b) { d.appendChild(bookRow(b, true)); });
+    }
+    if (reading.length) {
+      var r = document.getElementById('list-reading');
+      r.innerHTML = '';
+      reading.forEach(function (b) { r.appendChild(bookRow(b, false)); });
+    }
+
+    /* notes */
+    var withNotes = marks.filter(function (m) { return m.note; });
+    if (withNotes.length || marks.length) {
+      var box = document.getElementById('list-notes');
+      box.innerHTML = '';
+      if (!withNotes.length) {
+        box.innerHTML = '<p class="empty">' + hlCount + ' highlight' + (hlCount === 1 ? '' : 's') + ' so far, no written notes yet.</p>';
+      }
+      withNotes.slice(0, 200).forEach(function (m) {
+        var div = document.createElement('div');
+        div.className = 'note';
+        var meta = document.createElement('div');
+        meta.className = 'note-meta';
+        var dot = document.createElement('span');
+        dot.className = 'note-dot';
+        if (m.color) dot.style.background = m.color;
+        else dot.style.border = '1px solid var(--border2)';
+        var link = document.createElement('a');
+        link.href = 'books/' + m.book + '/' + m.page;
+        link.textContent = ((cat[m.book] && cat[m.book].title) || pretty(m.book));
+        meta.appendChild(dot);
+        meta.appendChild(link);
+        if (!m.mine) {
+          var tag = document.createElement('span');
+          tag.textContent = ' \u00b7 from my import';
+          meta.appendChild(tag);
+        }
+        div.appendChild(meta);
+        if (m.q) {
+          var q = document.createElement('p');
+          q.className = 'note-quote';
+          q.textContent = m.q.length > 280 ? m.q.slice(0, 280) + '\u2026' : m.q;
+          div.appendChild(q);
+        }
+        var t2 = document.createElement('p');
+        t2.className = 'note-text';
+        t2.textContent = m.note;
+        div.appendChild(t2);
+        box.appendChild(div);
+      });
+      if (withNotes.length > 200) {
+        var more = document.createElement('p');
+        more.className = 'empty';
+        more.textContent = 'Showing 200 of ' + withNotes.length + ' notes — export to keep them all.';
+        box.appendChild(more);
+      }
+    }
+  });
+
+  /* backup */
+  function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+  try {
+    document.getElementById('backup-size').textContent =
+      'Using ' + fmtBytes(window.RR.storageBytes()) + ' in this browser.';
+  } catch (e) {}
+  function say(msg) { document.getElementById('backup-status').textContent = msg; }
+
+  document.getElementById('btn-export').onclick = function () {
+    try {
+      var data = window.RR.exportData();
+      var n = Object.keys(data.data).length;
+      if (!n) { say('Nothing to export yet — read something first.'); return; }
+      var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      var a = document.createElement('a');
+      var d = new Date(), p = function (x) { return (x < 10 ? '0' : '') + x; };
+      a.href = URL.createObjectURL(blob);
+      a.download = 'reading-room-backup-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      say('Exported ' + n + ' saved items.');
+    } catch (e) { say('Export failed in this browser.'); }
+  };
+  document.getElementById('btn-import').onclick = function () {
+    document.getElementById('file-import').click();
+  };
+  document.getElementById('file-import').onchange = function (ev) {
+    var f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var n = window.RR.importData(JSON.parse(rd.result));
+        say('Imported ' + n + ' saved items. Reloading\u2026');
+        setTimeout(function () { location.reload(); }, 900);
+      } catch (err) { say('That file is not a Reading Room backup.'); }
+    };
+    rd.readAsText(f);
+    ev.target.value = '';
+  };
+  document.getElementById('btn-clear').onclick = function () {
+    if (!window.confirm('Erase all highlights, notes, progress and streak on this browser? Export first if you want to keep them.')) return;
+    try {
+      var n = window.RR.clearData();
+      say('Erased ' + n + ' saved items. Reloading\u2026');
+      setTimeout(function () { location.reload(); }, 900);
+    } catch (e) { say('Could not erase in this browser.'); }
+  };
+})();
+</script>
+</body>
+</html>

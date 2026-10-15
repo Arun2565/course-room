@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course Room — Arun</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23faf7f0'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%238a6820' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Spectral:ital,wght@0,200;0,300;0,400;1,200;1,300;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root[data-theme="dark"]{--bg:#0f0f0d;--bg2:#161613;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#d4cfc4;--text2:#7a7770;--text3:#3f3e3c;--accent:#b8a96a;--accent2:#c97b5a;--glow:rgba(184,169,106,0.05)}
+:root[data-theme="light"]{--bg:#fff;--bg2:#f0ede6;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.14);--text:#000;--text2:#333;--text3:#555;--accent:#8a6820;--accent2:#b8502e;--glow:rgba(138,104,32,0.06)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:'Spectral',Georgia,serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:0 28px}
+header{padding:60px 0 36px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:500;font-style:italic;color:var(--accent);line-height:1;letter-spacing:-0.02em}
+.brand-sub{font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:300;color:var(--text2);letter-spacing:0.14em;text-transform:uppercase;margin-top:7px}
+.brand-sub em{font-style:normal;color:var(--accent2)}
+.toggle-btn{background:none;border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;padding:7px 13px;border-radius:2px;cursor:pointer;flex-shrink:0;margin-bottom:4px}
+.toggle-btn:hover{border-color:var(--accent);color:var(--accent)}
+nav{border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;margin-bottom:48px;padding:1px 0}
+nav a{font-family:'DM Mono',monospace;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);text-decoration:none;padding:10px 16px 10px 0}
+nav a:not(:first-child){padding-left:16px;border-left:1px solid var(--border)}
+nav a:hover,nav a.active{color:var(--text)}
+.about{display:flex;gap:28px;align-items:flex-start;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:24px 0;margin-bottom:44px}
+.about-label{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);flex-shrink:0;width:56px;padding-top:2px}
+.about-text{font-family:'Spectral',serif;font-size:1rem;font-style:italic;color:var(--text2);line-height:1.85}
+.about-text strong{font-weight:600;font-style:normal;color:var(--text)}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--text3);flex-shrink:0}
+.sec-line{flex:1;height:1px;background:var(--border)}
+.proj-card{display:block;background:var(--bg);padding:26px 0;text-decoration:none;color:inherit;border-top:1px solid var(--border);position:relative}
+.proj-card:last-child{border-bottom:1px solid var(--border)}
+.proj-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform 0.3s ease}
+.proj-card:hover::after{transform:scaleX(1)}
+.proj-name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;font-style:italic;color:var(--text);margin-bottom:4px}
+.proj-card:hover .proj-name{color:var(--accent)}
+.proj-desc{font-family:'Spectral',serif;font-size:0.9rem;color:var(--text2);line-height:1.65;margin-bottom:10px}
+.proj-stack{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.stack-pill{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);border:1px solid var(--border2);padding:3px 7px;border-radius:2px}
+.proj-card:hover .stack-pill{color:var(--accent);border-color:var(--accent)}
+.proj-arrow{position:absolute;top:18px;right:0;font-size:0.75rem;color:var(--text3);opacity:0;transition:opacity 0.2s}
+.proj-card:hover .proj-arrow{opacity:1}
+.post-item{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit}
+.post-title{font-family:'Spectral',serif;font-size:1.1rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.post-item:hover .post-title{color:var(--accent)}
+.post-date{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);flex-shrink:0;letter-spacing:0.06em}
+footer{border-top:1px solid var(--border);padding:24px 0 52px;display:flex;justify-content:space-between;align-items:center;margin-top:44px}
+.foot-copy{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);letter-spacing:0.08em}
+.foot-links{display:flex;gap:18px}
+.foot-links a{font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);text-decoration:none}
+.foot-links a:hover{color:var(--accent)}
+.rr-util{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:10px 0 2px;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase}
+.rr-util-streak{color:var(--text2)}
+.rr-util-links{display:flex;gap:16px}
+.rr-util-links a{color:var(--text2);text-decoration:none}
+.rr-util-links a:hover{color:var(--accent)}
+#rr-search{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;padding:12vh 18px 18px;background:rgba(0,0,0,0.32)}
+#rr-search.open{display:flex}
+#rr-search-box{width:min(560px,100%);background:var(--bg);border:1px solid var(--border2);border-radius:6px;box-shadow:0 18px 60px rgba(0,0,0,0.3);overflow:hidden}
+#rr-search-input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-family:'DM Mono',monospace;font-size:0.95rem;padding:16px 18px;border-bottom:1px solid var(--border)}
+#rr-search-list{max-height:46vh;overflow-y:auto;padding:6px}
+#rr-search-list a{display:block;padding:9px 12px;border-radius:4px;text-decoration:none;color:var(--text)}
+#rr-search-list a:hover,#rr-search-list a.sel{background:var(--bg2)}
+.rr-search-kind{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-right:8px}
+#rr-search-empty{padding:14px 12px;color:var(--text3);font-style:italic;font-family:'Spectral',serif}
+@media (max-width:520px){.wrap{padding:0 18px}header{padding:40px 0 28px;flex-direction:column;align-items:flex-start;gap:14px}.brand-name{font-size:2.4rem}.about{flex-direction:column;gap:8px}footer{flex-direction:column;gap:12px;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="rr-search" role="dialog" aria-label="Search the library"><div id="rr-search-box"><input id="rr-search-input" type="text" placeholder="Search books, guides, blogs…" autocomplete="off"><div id="rr-search-list"></div></div></div><div class="sec-head"><div class="sec-title">Course Room</div><div class="sec-line"></div></div><div class="about"><div class="about-label">about</div><div class="about-text">Stanford lectures I am working through with a highlighter in hand — <strong>transcripts, slides and margin notes, kept</strong>. Lecture content belongs to Stanford and the lecturers; notes are mine. Open a course to read.</div></div><div class="sec-head"><div class="sec-title">Courses — 4 read</div><div class="sec-line"></div></div><div class="bk-grid" role="list"><a class="bk-lib" href="books/cs329a-self-improving-ai-agents/part01_reader.html" data-book="cs329a-self-improving-ai-agents" data-chapters="part01_reader.html,part02_reader.html,part03_reader.html"><span class="bk-lib-art">C</span><span class="bk-lib-title">CS329A: Self-Improving AI Agents</span><span class="bk-lib-author">Stanford Online</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">3 ch &middot; 41 marks</span></span></a><a class="bk-lib" href="books/cs329a-part1/guide_reader.html" data-book="cs329a-part1" data-chapters="guide_reader.html"><span class="bk-lib-art">C</span><span class="bk-lib-title">CS329A Part 1: From Scaling Laws to Self-Improving Agents</span><span class="bk-lib-author">Stanford Online</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">1 ch &middot; 8 marks</span></span></a><a class="bk-lib" href="books/cs336-language-modeling-from-scratch/lecture01_reader.html" data-book="cs336-language-modeling-from-scratch" data-chapters="lecture01_reader.html"><span class="bk-lib-art">C</span><span class="bk-lib-title">CS336: Language Modeling from Scratch</span><span class="bk-lib-author">Stanford Online</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">1 ch &middot; 0 marks</span></span></a><a class="bk-lib" href="books/cs231a-slides/cs231a-lecture-1.pdf" data-book="cs231a-slides" data-chapters="cs231a-lecture-1.pdf,cs231a-landscape-with-notes.pdf"><span class="bk-lib-art">C</span><span class="bk-lib-title">CS231A: Lecture Slides</span><span class="bk-lib-author">Stanford Online</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">2 ch &middot; 0 marks</span></span></a></div><link rel="stylesheet" href="assets/cards.css?v=3"><script src="assets/local.js?v=2"></script><script src="assets/library.js?v=2"></script>
+</div>
+<script>
+function toggleTheme(){const h=document.documentElement,b=document.getElementById('theme-btn');if(h.dataset.theme==='dark'){h.dataset.theme='light';b.textContent='\u263E dark';}else{h.dataset.theme='dark';b.textContent='\u2600 light';}}
+</script>
+</body>
+</html>

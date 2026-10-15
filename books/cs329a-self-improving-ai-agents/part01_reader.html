@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Part 1 — Course Overview</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=14">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="part01_reader.html" class="toc-chapter" onclick="navigateToChapter('part01_reader.html')"><span>Part 1 — Course Overview</span><span class="toc-ann-count">41</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#welcome-course-setup">Welcome &amp; course setup</a>
+<a class="toc-heading toc-sub" href="#scaling-laws">Scaling laws</a>
+<a class="toc-heading toc-sub" href="#bigger-models-2018-2024">Bigger models, 2018–2024</a>
+<a class="toc-heading toc-sub" href="#few-shot-and-zero-shot-learning">Few-shot and zero-shot learning</a>
+<a class="toc-heading toc-sub" href="#chain-of-thought-at-scale">Chain-of-thought at scale</a>
+<a class="toc-heading toc-sub" href="#the-chatgpt-leap">The ChatGPT leap</a>
+<a class="toc-heading toc-sub" href="#the-post-training-pipeline">The post-training pipeline</a>
+<a class="toc-heading toc-sub" href="#inference-time-scaling">Inference-time scaling</a>
+<a class="toc-heading toc-sub" href="#reasoning-models">Reasoning models</a>
+<a class="toc-heading toc-sub" href="#from-chatbots-to-agents">From chatbots to agents</a>
+<a class="toc-heading toc-sub" href="#logistics-grading">Logistics &amp; grading</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="part02_reader.html" class="toc-chapter" onclick="navigateToChapter('part02_reader.html')"><span>Part 2 — Test-Time Compute Scaling</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">▶</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="part02_reader.html#welcome-the-three-stages">Welcome &amp; the three stages</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#large-language-monkeys-repeated-sampling">Large Language Monkeys: repeated sampling</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#why-verification-matters">Why verification matters</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#class-discussion-takeaways">Class discussion: takeaways</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#beyond-parallel-sampling-prms-tree-search">Beyond parallel sampling: PRMs &amp; tree search</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#combining-strategies-measuring-difficulty">Combining strategies &amp; measuring difficulty</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#q-a-and-discussion">Q&amp;A and discussion</a>
+<a class="toc-heading toc-sub" href="part02_reader.html#archon-inference-architecture-search">Archon: inference architecture search</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="part03_reader.html" class="toc-chapter" onclick="navigateToChapter('part03_reader.html')"><span>Part 3 — Robust Verification</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="part03_reader.html#welcome-the-verification-story">Welcome: the verification story</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#paper-1-training-verifiers-that-judge-solutions">Paper 1: training verifiers that judge solutions</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#paper-2-let-s-verify-step-by-step-prm-vs-orm">Paper 2: Let&#x27;s Verify Step by Step (PRM vs ORM)</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#paper-3-math-shepherd-without-human-labels">Paper 3: Math-Shepherd without human labels</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#paper-4-weak-verifiers-weaver">Paper 4: weak verifiers &amp; Weaver</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#recap-what-s-next">Recap &amp; what&#x27;s next</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Part 1 — Course Overview</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Part 1 — Course Overview</h1>
+<span class="ann-badge">📝 41 annotations</span>
+</div>
+<h2 id="welcome-course-setup">Welcome &amp; course setup</h2>
+<p>Welcome, everyone, to fall quarter and welcome to CS329A.</p>
+<p>I hope you made it to the right class. This class is on self-improving AI agents. Anyone made it to the right class here? Yes. Yes? OK. How many of you are here and doing masters at Stanford?</p>
+<p>OK. PhD? OK. Few of you. And then undergrad? OK. So masters is the big crowd here. There&#x27;s a good balance. It&#x27;s a really good balance. So we&#x27;ll introduce ourselves. So I&#x27;m Akansha. I have been working in large language models for a while, and I&#x27;m an adjunct professor at Stanford. And I&#x27;m also in research at a startup called Reflection AI.</p>
+<p>Hi, I&#x27;m Azalia Mirhoseini I&#x27;m. An assistant professor in the CS Department. And Akanksha and I met each other when we were at Google Brain. Google Brain. Yeah, back in the day. And then Google DeepMind. And I also worked on Claude and Anthropic and Gemini at Google DeepMind. And we are so excited to teach this course again. This is the second time we&#x27;re teaching. Of course, we have made some updates, both to the lectures and also the way we are conducting everything for the course.</p>
+<p>And we were just so amazed by the amount of interest for people to join this course. So we are excited to have you here. The course website is at cs239a.stanford.edu. We have updated the website in terms of all the lecture materials and the papers that you&#x27;ll be reading, as well as what&#x27;s the homework schedule to expect the project proposal and project structures as well.</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">So in today&#x27;s lecture, we&#x27;ll start with an overview of large language models</span>, just how the scaling trends have evolved over the last five years. And then we&#x27;ll focus more on what we will cover in this class. And then from there, in the second half of this lecture, we&#x27;ll cover the course logistics. And that part, you should pay a lot of attention to, because that influences your grades.</p>
+<h2 id="scaling-laws">Scaling laws</h2>
+<p>So let&#x27;s take a look at an overview of the trends for large language models. So one of the aspects that has been mind blowing <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">since GPT 3 came out is that </span><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">as you scale up the number of parameters in a model, they get better</span>. And what this means is that language models like Bert and T5 were good. <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">But as we increase the number of parameters, they got really better. They perform much better. And what this led to is something called a scaling loss for large language models, which are used in building the base model for-the pre-trained base model.</span> And as you increase the amount of compute-so there are three graphs here.</p>
+<p>As you increase the amount of compute on the x-axis, the loss function on the y-axis goes down.</p>
+<p>And the more compute you have put in, the more the test loss goes down, which leads to a better model. So that was one big aspect that led to GPT 3, then all the subsequent-- ChatGPT, PaLM, Gemini, and so on. And then similarly, as you increase the data set size on x-axis, the test loss goes down further on the y-axis. So that&#x27;s another aspect of-another axis of scaling that leads to better language models. And the third one is, of course parameter counts. So if you increase the number of layers in a transformer or the amount of parameters that are there in the language model, that improves the loss value, and that leads to a better model.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">And this has been the foundation for a lot of-- this has been the foundation for a long time, </span><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">until last year, where this was starting to hit some kind of a saturation point</span>.</p>
+<h2 id="bigger-models-2018-2024">Bigger models, 2018–2024</h2>
+<p>So from 2018 to almost 2024-this graph is a little bit outdated. But from 2018 to 2024, as the model size has gone up almost consistently, we have been increasing the size of the model. So you started with something like Bert was 340 million parameters, GPT 2 was 1.5 billion parameters, and then GPT 3 was 175 billion parameters, and then PaLM was 540 billion. And then there was a bunch of subsequent models. And GPT 4 is estimated to be there, which is trillions of parameters. So you can imagine that there has been an exponential growth in just the model size for large language models.</p>
+<p>The large stands for that they&#x27;re growing in size. And that has been one of the key areas in which the models have been getting better. So why do we care about the models getting bigger? What does this lead to? So as I was explaining that as the models get bigger, they continuously improve in performance on natural language benchmarks on various other benchmarks, reasoning benchmarks, and so on. And then the other interesting aspect that I will show you in a moment is that they learn how to do few shot learning. So earlier, you have to fine tune the model for specific domain.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">But just by giving a few examples, the model can follow that template and reason in that same vein, which makes it extremely easy to prototype things. And then the third aspect is that as the models become bigger, </span><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">they have emergent behavior where the capabilities like reasoning only emerge in larger models</span>.</p>
+<h2 id="few-shot-and-zero-shot-learning">Few-shot and zero-shot learning</h2>
+<p>So just to understand few shot learning or zero shot learning here. So if the model is given a question or a task, like translate English to French, it&#x27;s able to give-so this is called a prompt. Like it&#x27;s a given a task, translate English to French. And then it&#x27;s asked to translate cheese to whatever is the French word. If the model can predict the answer without actually being trained on the specific task, then that would be called zero shot learning. And then few shot learning, in addition to giving the description of the task, you&#x27;re also giving a few examples.</p>
+<p>So in this particular case, it&#x27;s giving, translate English to French. And it&#x27;s given a few examples of the translation from English to French. And then it&#x27;s asked to translate cheese and it&#x27;s able to translate that. And you can see that this capability shows up in the large language models across a large number of tasks. And that has been one of the key areas that GPT 3, PaLM, and other models enabled. And then that subsequent innovations came from reasoning aspects of this. So on the reasoning side, as models have become bigger, they have this emergent behavior of reasoning, which Azalia will tell us a little bit more about.</p>
+<p>So as the models become bigger, not only we have this predictive scaling laws property that we know how the loss function is going to go down as we throw in more compute data and parameters in the model, there are new behaviors that appear in the model that they didn&#x27;t have before. And we never could predict that until we had these bigger models and saw this behavior in them. And one of the most important-one of those behaviors is the chain of thought behavior.</p>
+<p>And for those of you who are not familiar with this, here is how it works. So in a usual prompting of a model, we can ask a model, in this case, a math problem.</p>
+<p>And then we can give it a one shot example. Here is a math problem, here is the answer. Now I ask you a similar but not exactly the same math problem.</p>
+<p>And the model is expected to answer that. And the model might be able to use the one shot example, or it might not be. But we can do better here by not only give an example, but also provide the reasoning or the chain of thought on how we got to that answer. So in this case, the question is a very simple question. Roger has five tennis balls. He buys two more cans of tennis balls. Each can has three tennis balls. How many total tennis balls does he have now? And instead of just saying 11, you&#x27;re walking the model through how to get to this. Roger started with five balls.</p>
+<p>Two cans of three tennis balls is 6, and 5 plus 6 is 11.</p>
+<p>And with this example, then the model has become familiar with the process to get to the answer.</p>
+<p>And it can leverage that to answer new problems.</p>
+<p>Well, obviously, this is a very simple problem. Any 1B parameter model nowadays can solve this. Doesn&#x27;t need an example or a few shot or a chain of thought.</p>
+<h2 id="chain-of-thought-at-scale">Chain-of-thought at scale</h2>
+<p>But the chain of thought property itself is a property that is holding to this day. And it&#x27;s a very, very important property for the reasoning models and all the thinking models and much of the progress that we have seen in the past year or so. Now, this property again appears as we have larger and larger models. Here are three models, LaMDA, GPT, and PaLM. And as you can see, the chain of thought. And this is some results on some math data set.</p>
+<p>And these <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">models, when they&#x27;re smaller, like eight billion parameter for LaMDA, or for GPT, around 7 billion, they can&#x27;t really benefit from chain of thought. It doesn&#x27;t do anything for them.</span> But as they become larger or for a pull mother again at 8 billion, it can leverage this chain of thought property and learn from the reasoning and the process that is provided in the context in order to solve problems better.</p>
+<p>And not only that, there are other abilities to solve new tasks as we increase the size of the models. Like, for examples, models can all of a sudden solve mod arithmetics better or solve word unscrambled problem just by having this larger size and this property.</p>
+<p>You see that all of a sudden, it appears at a certain size.</p>
+<p>And because of all of this, we still, as in frontier companies and labs, are still interested in pushing the scaling laws and not only get the natural kind of progression, but also we will see more and more of these emergent behavior that is going to be very important.</p>
+<h2 id="the-chatgpt-leap">The ChatGPT leap</h2>
+<p>Now, a little bit of history here. So ChatGPT was launched in November 2022.</p>
+<p>Obviously, it was one of the most successful apps or software ever created. The time to reach one million users for it was five days, which is significantly faster than many of the other famous software that you can see there, or services that you can see there. And there were pieces of innovation on top of just scaling up the parameter size of the model that were very important to make ChatGPT what it was and to make that leapfrog over the previous models, like GPT-3, so on. And <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">two important pieces here were the instruction tooling and the reinforcement learning from human feedback</span>, which we are going to briefly mention in the next slides.</p>
+<p>But throughout this course, we are going to learn more and more about them.</p>
+<p>And then we&#x27;re going to learn about all of these in more details. But let&#x27;s just take a step back and see how the process works.</p>
+<h2 id="the-post-training-pipeline">The post-training pipeline</h2>
+<p>So the pre-training step is the step at the beginning of any language model training. That&#x27;s the easiest step. And we just train the model to predict the next token out of all sorts of text and data, and so on. And then this is the fine tuning step that was a key differentiating factor for a model like ChatGPT.</p>
+<p>And let&#x27;s start with the first aspect of fine tuning, which is alignment with human preferences. So when a model is pre-trained, it has no sense. It has seen all data on the internet, in the books, everywhere. But it has no sense of what is right and wrong and what is.</p>
+<p>It just statistically knows about the state of the worl, but does it doesn&#x27;t exactly know things or know how to follow instructions. So the <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">next step in training these models is the step where</span> <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">we try to steer the AI models to follow the goals and preferences and values of humans.</span> And this is still a big problem. It&#x27;s a big issue. We haven&#x27;t mastered it yet. But as we progress, models are becoming better and much more powerful in the things that they can do.</p>
+<p>So it turns out that we can fine tune the models to be aligned. For example, here are some graphs that show, what if we take our base model that&#x27;s just pre-trained and fine tune it for things like sensibleness or safety?</p>
+<p>And these are data that we have collected.</p>
+<p>These are high quality data for showing the model what we mean by what&#x27;s safe and what&#x27;s unsafe or what&#x27;s sensible and what doesn&#x27;t make sense. And these are more curated, more highly curated data that we pass to the model for fine tuning and to make the model more aligned with the values or the preferences of humans.</p>
+<p>So going back, let&#x27;s just walk through this process again.</p>
+<p>So the first stop when we take a pre-trained language model is fine tuning with next token prediction, which follows the same process as pre-training. But this time on data that is much more higher quality.</p>
+<p>For example, this could be data from books, creative essays.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">Data that companies pay a whole lot, millions of dollars or hundreds of millions of dollars potentially, to buy this data that&#x27;s really high quality. And then we train them. </span><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">We fine tune the model on those, and the model becomes much better as a result of that</span>.</p>
+<p>The next step is instruction tuning. And by instruction tuning, what we mean is that we show the model. Again, traditionally in the past two years, this instruction tuning data is a combination of human generated data role templates and the synthetic data. But the way this <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">instruction fine tuning works is that we do have instruction and then question answer pairs, where the model learns how to follow the questions and answers them.</span> For example, here, an instruction tuning data set could be about the weather. Please answer the following question, what is the boiling point of nitrogen?</p>
+<p>And then this is the answer. <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">Or we can have chain of thought fine tuning, where we show the model how it can walk through a process to get to the answer. And then we have the label.</span> We have the result over here. And this is like these pairs of questions and instructions and answers. And again, this data set is very-there&#x27;s a lot of effort that goes into this data set. And the quality of data set and the generality of it has a lot of impact on the quality of the model that we get at this stage. And after this point, then the model becomes more and more like the models we see today.</p>
+<p>You can ask them questions, you can go back and forth with them. They have this sense of how to perceive a question and how to walk through some process to get to an answer.</p>
+<p>And the <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">next step after instruction fine tuning is this process of using human preferences and fine tuning the model based on that. And this process is called RLHF, or Reinforcement Learning from Human Feedback.</span> The way this is different from the previous step is the way <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">we create the objective function and create the data. So in this case, instead of just creating some supervised prompt and labels, we are basically creating a reward model out of human preferences.</span> So companies spend a lot of money asking humans, sometimes experts, sometimes just humans, normal humans, about questions and the answers generated by the model.</p>
+<p>And we asked the humans to rate them, to see which one is correct, and which one is not correct, and that&#x27;s how we can create some sort of a reward model here. And this reward model is instead of human. <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">Then we can use the reward model in order to guide the parameters of our LLM towards generating answers that are in line with this reward model.</span> So basically we want the generations by the model to be such that this reward model says yes, these are good generations. We&#x27;re going to learn more about this here, but we wanted you to have the high level idea of what RLHF means.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">We can have different reward types, different types of reward. For example, we could ask the model to reward a pair of answers based on their correctness or helpfulness or specificity or harmlessness. All reward functions that we can define. And depending on how we want the models to be and what we care most about, we can weigh these different reward models and use that in the RLHF process.</span></p>
+<p>So these step at a high level, of course, there&#x27;s a lot of effort goes into that. But pre-training and then fine tuning on higher quality data instruction tuning and RLHF were the core components that made up a model like ChatGPT over something that existed, over all the large models like GPT-3 and prior models. So that made a huge difference in how good and capable the models were. So that was very cool up until last year.</p>
+<p>Or a year and a half ago. Pre-training and then fine tuning were the big pieces. <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">But since a year and a half ago, it turns out inference is also a frontier for making the models much more</span> <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">capable. So and that opened a whole set of whole lot of new research and directions and ways that we can make the model better.</span> So let&#x27;s talk about it a little bit. Like this is the work we did in my lab last year.</p>
+<h2 id="inference-time-scaling">Inference-time scaling</h2>
+<p>Last summer, and it was called Large Language Monkeys.</p>
+<p>And it&#x27;s inspired by the infinite monkey theorem. And it&#x27;s related to inference scaling. How many of you have heard of the infinite monkey theorem?</p>
+<p>OK, that&#x27;s a good amount. So the idea of the infinite monkey theorem, what it says is that it&#x27;s not proven. But what it says is that if you have a monkey and a typing machine, and then we keep letting the monkey type all day forever, after some time, we will have the works of William Shakespeare in the things that the monkey types. So we were inspired by that to name our project. But the idea here was that, let&#x27;s have the LLM be the monkey. And let&#x27;s ask the model over and over again to solve a given input problem. You can think of it as parallel sampling or parallel generation.</p>
+<p>So instead of asking the model once to solve the input problem, you can ask it many times. And also, <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">let&#x27;s assume you have some sort of verifier or selection mechanism so you can pick which one of these generated responses were correct. And then you output that in your system. That becomes the final output.</span> So the model, instead of generating one answer, generates many, many answers. And <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">then your verifier selects which one of them is correct and then outputs one of the correct ones. You can think of a verifier as, say, some unit tests. If the problem is generating code, the verifier could be the unit test that we run against the code, and we see which one of the code generation passes all the unit tests, and so on.</span></p>
+<p>The reason this can be a possibility here is that models are not-there is some variance in the way the models generate responses. It&#x27;s not deterministic. And <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">you can even control the variation in the model responses with this thing called temperature. So you can force the model or encourage the model to generate more different responses as you ask a question.</span></p>
+<p>And here, now let&#x27;s see some of the results of this repeated sampling. For a bunch of tasks, like math and coding benchmarks, we increased the number of samples per problem from 1, which is the normal one, to 10,000. And here, we are showing the coverage or the fraction of problems that are solved by at least one of these samples.</p>
+<p>And what we are seeing here is that so the red line, the red dashed line, was the GPT-4o model.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">And while these blue and green lines, which were the normal HP, the normal 3HP and 7AB, were worse than GPT-4o model with one sample. But if we increase the number of samples from these models, </span><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">in all of these cases, they do better than the GPT-4o model</span>.</p>
+<p>And what it says is that it kind of seems like the <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">models already know a whole lot more than what you get out of them when you just ask them once, right. So this is the underlying property of inference scaling, because it seems like we can get a whole lot more capability and problem solving ability from these models if we just bring in this inference scaling. Here, we are showing repeated sampling, but there are many other ways to do</span> that. So the reason it&#x27;s called inference scaling is that we are not touching any of the parameters of the model. The model is fixed, and we are just at inference time.</p>
+<p>We are creating different ways to generate, to produce generations from the model and use them to generate higher quality answers or answers to harder problems for the model. The interesting part here is that for some of these problems, out of these 10,000 solutions, maybe three or four of them were correct for a single problem. So it shows that how important it is to scale the inference to really get to the core capability of the models. But what is the difference of ways of traversing all of the possible answers and just [INAUDIBLE]?</p>
+<p>Sorry, what&#x27;s the question? What is the difference of just ways of traversing all the possible answers and [INAUDIBLE]?</p>
+<p>So the possible answers need to be generated somehow by the model, right? So the space of all possible answers to the model is way bigger. if we do like a tree search or a random search, it&#x27;s way bigger, right. There&#x27;s no way to hit. Even imagine we are asking a human, just sit down and solve this problem, right.</p>
+<p>Of course, there&#x27;s no limit to human creativity, human&#x27;s creativity. But there is a limit to how many generations we can have, right. Or if we randomize things, there&#x27;s a whole lot set of answers that can be generated. And this is highly sample efficient, right. 10,000 is not a whole lot. Especially like, for example, for the math f to f.</p>
+<p>Some of these problems are really hard IMO level problems.</p>
+<p>These are really hard problems that a tiny model like a 7 and Llama ATP can solve. I was thinking, how does the latency compare to when you do actually generate all those samples compared to the GPT-4o, right? How does the latency-is tradeoff for you? Yeah, of course, there&#x27;s a tradeoff. And we touch on that in the lecture that I go more details towards this. The parallel samples, the good thing about them that they can be run in parallel. So from a latency perspective, that&#x27;s less of an issue. But of course, there is the frontier of cost tradeoffs between how much compute you&#x27;re spending.</p>
+<p>And we will look into that. And it varies. It varies depending on the type of and complexity of the problems. Yes? This approach where you have a verifiable domain like math and coding and how do you handle it when you don&#x27;t have-- Yes, great question again. When you have verifiers, it&#x27;s much easier. When you don&#x27;t have verifiers, there&#x27;s this whole set of research on how to train LLM as Judge or LLMs reward functions or LLMs with tools becoming. And we&#x27;re going to learn about that all. We have a lecture just dedicated to verifiers, so.</p>
+<p>Yeah? Just a quick question, sorry. So does this generalize to any positive temperature?</p>
+<p>So as the limit, as the temperature goes to infinity-- No. Yeah, we can have the temperature being too high, because it&#x27;s going to be gibberish. The model doesn&#x27;t generate. So there&#x27;s actually a research project last year was on tuning that or figuring out what temperature.</p>
+<p>Usually if you go beyond 1.2 or so, it&#x27;s not great, yeah.</p>
+<p>Yeah. But there are other tricks that you can do to make the model be more-have more diversity in the type of answers. And that can be useful. All right.</p>
+<p>So let&#x27;s look at this. So now, again, going back to the events of last year, year and a half, we had the DeepSeek model. I think it came out in December. Christmas. DeepSeek came out December 2024. Oh, wow. It&#x27;s been a short time. Short time or long time, I don&#x27;t know. So then models like DeepSeek came last year. So basically, a core innovation in DeepSeek. And then the one series Gemini thinking and such were that. Now we are bringing this fine tuning and test time scaling together. Because with this test time scaling and the models themselves, we have this new engine that we can generate a whole lot of synthetic data.</p>
+<p>For example, for problems like for math problems, where we know the answer. We can have the model generate different answers that leads to that final golden answer. Or for the coding problems, we can use the model to generate tons of data during test time scaling, tons of quality data to solve coding problems. And that becomes part of our training set. Now we can use that to fine tune the model to become better.</p>
+<p>So that, <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">bringing these two together became a big piece in thinking models and reasoning models</span>.</p>
+<p>And this is an area that is really, really important.</p>
+<p>There&#x27;s just so much to be explored in this. Because again, it&#x27;s open-ended, right. There&#x27;s no boundary in how good the models can become with test time scaling, and then bringing that back to the process of training the model or fine tuning the model to become better is very exciting. And that&#x27;s the self-improving piece that we are very excited about.</p>
+<h2 id="reasoning-models">Reasoning models</h2>
+<p>So a little bit about reasoning models. In the language monkeys, what we were showing was the coverage. If we had access to verifiers, we can see the log linear scaling laws with the number of samples.</p>
+<p>And <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">OpenAI, when they released o1 last September, they showed the log linear relationship, this time with pass at one for these hard aiming benchmark, which is a set of really difficult math questions.</span></p>
+<p>So <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">what they&#x27;re showing here is that as they&#x27;re increasing test time compute, and this is in log scale, the accuracy, the past one accuracy of the model goes up. And this is for test time alone. Previously, this has been shown for training, but it&#x27;s very interesting that this kind of scaling applies to test time as well, without changing the parameter count of the model.</span></p>
+<p>I&#x27;m going to walk you through a few examples of how this reasoning or test time scaling works with models like O3 or Gemini. So one motivation here is that for difficult problems, just like humans, think a lot more, spend a lot more time, or consider many different strategies, thinking models do the same. And they may use a chain of thought or other techniques to just go about solving a problem.</p>
+<p>And there are different steps to that. For example, problem analysis is one step. The model first sees a problem and tries to analyze it. Then it can do the task decomposition. Breaking a task into simpler tasks that are more addressable.</p>
+<p>Then there is the self-evolution strategies where the model tries something, sees the feedback. For example, runs some tests on the code or uses a calculator, or just judges the answer. And it can use that feedback to optimize itself. There&#x27;s self-correction, and there are alternative proposals. If something doesn&#x27;t work, the model can backtrack and try a different approach.</p>
+<p>These are some key principles that the model probably at some point, pieces of it were trained as part of the training data set were curated by humans.</p>
+<p>But a big part of it is also the model acquiring these skills during this fine tuning process and RL from synthetic data process that the model does.</p>
+<p>Here is an example of how o1 does analysis.</p>
+<p>The model is asked to write a bash script that takes a matrix and then outputs the transpose of that matrix. And the model starts with, just like humans, starts thinking, what are the pieces, important pieces, here?</p>
+<p>So the user is requesting a bash script. Let&#x27;s understand the input and output formats of this matrix, and so on. So the model just thinks itself. And amazingly, it&#x27;s like a progression of chain of thought.</p>
+<p>This is like helping the model finding the answer. But the difference between chain of thought and this is that the model itself is producing this chain of thought.</p>
+<p>There&#x27;s, of course, task decomposition, in this case, for the approach. The model thinks about parsing the input, building the matrix as an array of arrays and so on.</p>
+<p>There&#x27;s also self-correction, which is a big important piece of-this is an important piece here. And I don&#x27;t know how many of you have seen that when trying with the models that you can see the thinking traces. And this is actually pretty common. The models start something, and then in the middle says, wait, the correct-there&#x27;s something wrong, maybe. And maybe I need to fix that. And it&#x27;s very, very cool that the model can do that itself. So reasoning models, when they came out, like models like o1, compared to a model like GPT-4o, which wasn&#x27;t a reasoning model, they tend to be better in obviously the reasoning task.</p>
+<p>For example, in math calculation, data analysis, programming and such, they all outperform GPT-4o, but not necessarily in personal writing or editing texts, and so on. Yeah, question? Do you think the gains due to this asking for a reasonable price is due to actually the act of generating this reasoning traits, or just the act of asking the model to think or do these decomposition at all? Like, for example, if you said, think step by step, but don&#x27;t generate out loud, but actually generate false positive [INAUDIBLE] without saying. Yeah. I repeat the question.</p>
+<p>You were saying, do you think the reasoning models are becoming what they are? Is it based on the loud way of thinking? I think the question is that, is it because of the reasoning, or is it because of things step by step, the chain of thought? Is it the data that&#x27;s making a difference, or is it the instruction? I mean, so the data basically has made the model become a generalized thinker, right.</p>
+<p>And all of these steps, breaking down a problem, being able to backtrack, being able to do analysis, all of these are these skills that the model has learned during this thinking optimization process that now generalize to other things. And they&#x27;re helping the model right now. So I think the other way to look at it is as Azalia presented, repeated sampling. So if you had just a base model right after pre-training, it would be able to do some reasonings. But at the same time, it will generate different kinds of reasoning chains. And it doesn&#x27;t quite know which one is correct.</p>
+<p>So a lot of what we will cover in train time or test time scaling really comes down to it learns, which is correct. So pass it, one accuracy goes up, which is what you were seeing in the reasoning models. As opposed to pass it k or coverage, which is what you were seeing in the repeated sampling results. Yeah. And one other way to think about it, yes, these deep thinking and things that the model generates is actually helping the model every time to solve a new problem. And although it&#x27;s very expensive for the model to generate those things, still, we want them to generate those, because it leads to better answers.</p>
+<p>Any other questions? Yes? Can you use a different model for the reasoning step versus generating the final answer? Maybe a smaller or a purpose built one just in case the final answer is a large problem?</p>
+<p>So typically, the reasoning capabilities have gone up with the model size. So if anything, you would use the larger reasoning traces.</p>
+<p>And then <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">maybe you collect a bunch of reasoning traces and then have a smaller model summarize the answer. So the models, this is at least currently, things may change, they like their own traces more.</span> Even if the traces are coming from a better model, they tend to their traces, their own generated traces, more. And we&#x27;re going to have talk about <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">Swirl. This is one of the papers that-- The multi-step reasoning. The multi-step reasoning that we talk about, what if we bring a different model not in the context of generating reasoning traces, but in the context of evaluating and giving feedback?</span></p>
+<p>And we&#x27;re going to see that as well. But models, surprisingly or not surprisingly, they like their own traces a lot more. For reasoning models, how are they taught to reason? Is it a hard coded set of sequences that are taught to do traces, or are they somehow fine tuned to say, we need to do this much or this kind of thing, which will cause the traces to generate? So I don&#x27;t think there&#x27;s a published piece of work that really covers this bit. It&#x27;s both, yeah. But it&#x27;s a bit of both. And at the same time, the base model did have the thinking capability to begin with, right.</p>
+<p>Go do some amount of thinking. One thing that we will cover in the class is this notion of outcome rewards model and process reward model, and how you can use that feedback to get the model back.</p>
+<p>Yeah, there&#x27;s always some bootstrapping. Like, OK, here are different ways. Chain of thought itself, which is heavily used in the instruction tuning of data set, shows the model some ways of how to think. And there could be some templates showing for the model, fine tuning. But the things that the model, if you just ask it any question and it comes up with that, there&#x27;s a whole lot of generalization that. So models have gone way above like what the data or instructions that are used for training them.</p>
+<p>Yes? In sampling, is there a way to make the number of samples from-- Please speak up. The number of samples, can they be dependent on problem difficulty? I don&#x27;t think there&#x27;s a published piece of work that does that.</p>
+<p>So there is follow up work to that where <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">we use a reward model, and then you can use that. So assuming the reward model has some notion of complexity. If you haven&#x27;t solved, it can guide more sampling, or whether it&#x27;s repeated or parallel.</span></p>
+<h2 id="from-chatbots-to-agents">From chatbots to agents</h2>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">But that&#x27;s definitely an interesting direction to explore.</span> Yeah. OK, we need to get to the-- oh, we haven&#x27;t-yeah, let me cover this. OK, so you now know about large language models. And then you heard about how they learned how to think, and then they learned how to reason. So what&#x27;s next, and why is this course relevant? So a lot of what this course is about is that large language models, as chatbots or as reasoning models, are basically still single turn or just in the chat format. So they&#x27;re not accomplishing a task for you. They&#x27;re fun to interact with, but they&#x27;re not necessarily accomplishing a task for you.</p>
+<p>What has happened this year almost in the last few months, and it&#x27;s been surprising, is that agents like Cloud Code or Deep Research have really enabled people to do real world workflows. So they&#x27;re agentic workflows which can achieve tasks that you ask them to do end to end. So, for example, if you want to go research and figure out, where should I rent a home perhaps for the entire year, if I want to take a class at Stanford, the model would actually be able to do a whole bunch of analysis and go look at a lot of different websites and actually summarize the results and give you pros and cons of different places.</p>
+<p>This used to not be possible before. So this will cover a little bit of how that becomes possible and how this course allows you to learn about that. And then Cloud Code for example, if any of you are Codex, which is the coding agent from OpenAI, if you&#x27;re using that, what you&#x27;ll see is that just by giving instructions in English, you can modify files, or you can figure out test cases and whatnot. So it really has become a coding productivity tool in the day-to-day workflows for software engineers at this point in time. So what is the transition from LLM to agents?</p>
+<p>So as I was giving you the example of deep research and of coding agents, basically now, the model can be given a goal. And it will plan out the steps that it will go interact with the environment. And based on the feedback, it will correct its steps until it achieves the goals or it will come back and say, I cannot achieve the goal. <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">So this notion of having some notion of a goal, taking actions towards that goal, getting the feedback, and then deciding when to stop, that&#x27;s what makes agents different from the chatbot types of what we were doing before. And this also might require interacting with tools which are external to what the model itself is doing, getting some inputs from there.</span></p>
+<p>But it still stays on track of whatever task it&#x27;s choosing to accomplish, which might mean that it has to have some form of memory to keep track of the tasks that it&#x27;s trying to accomplish. So what has been accomplished? So in several cases, in simpler cases, you can achieve these end to end goals. Deep research can be accomplished end to end. But in most scenarios, you are still having very static workflows. So today, what exists is closer to agentic workflows, where you have some sort of an input where you&#x27;re giving a model the goal. And then what this slide is showing you is that one model is perhaps giving the output like a solution, and then another model is judging it and then deciding based on that, whether the solution should be accepted.</p>
+<p>So that&#x27;s one orchestration framework that&#x27;s possible. Deep research would be more of the second one, where you basically generating-you&#x27;re calling the LLM on multiple possible inputs and then aggregating the things to get the output, which will be a summary of the deep research results. So this is a very cartoonish abstraction of what agentic workflows might look like. And you can generalize from there. But instead of having very open ended loop that I was showing you here, where you&#x27;re supposed to go take an action from the environment and come back and do some feedback, it&#x27;s easier for open ended problems to construct this graph by hand of how a human would do it and then get this feedback perhaps from an LLM, which is the LLM evaluator here.</p>
+<p>So a lot of the real world workflows still have this paradigm. But in certain cases, we are starting to see signs of life for what&#x27;s possible in this slide. And coding being one and research being another one. So typically, the workflows will have things like LLM calls.</p>
+<p>So you would basically call an LLM with an instruction or some form of input. And then you&#x27;re asking the LLM to give you an output. It will have some form of verifiers. We&#x27;ll cover verifiers in a whole lecture by itself. It will have some form of critics or judges, which is effectively LLM as a judge paradigm. There might be tool calls. For example, for deep research, you have to actually go search the web to figure out what exactly is the content that you should be looking at. So there might be tool calls of that form or getting some value around what exactly is the weather.</p>
+<p>And similarly, search would be another tool call. And then you would orchestrate these in some form of a workflow. So a simplest workflow here would be <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">prompt chaining. So similar to reasoning models where the task gets decomposed into subtasks, prompt chaining would simply be like you have chained a bunch of different subtasks that you&#x27;re supposed to go accomplish to achieve the end to end goal.</span> There might be routing. Routing works for complex tasks where you say, OK, if this is very complex, then go do this more complicated set of LLM calls. And it&#x27;s less complicated than do this simpler workflow.</p>
+<p>There might be parallelization where deep research is one example where you can have multiple LLM calls work simultaneously on researching different keywords that you give as input to the LLM. And then finally, you aggregate the output. Or you might break the task into independent subtasks and then combine the solution. Or you might have this notion of orchestrator, where you basically are actually using some sort of a, in simple words, LLM manager.</p>
+<p>So a central LLM is actually doing the planning. So in Cloud Code, you actually start to see that, that there is some notion of a plan that it comes up with. And then based on that plan, it will make subsequent LLM calls.</p>
+<p>You might have an evaluator or a judge. So instead of getting feedback from real world, like user or from some sort of a actual running a unit test, it actually might just use LLM as a judge. And we will have some homeworks that will cover this aspect. And then you might have verifiers. <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">Verifiers are things where you can actually verify the output.</span> So in code, for example, if you run the code, how do you know that this code is correct? <span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">So typically, as software developers we write unit tests. So similarly, verifiers might be running some kind of unit test to check, whether what LLM generated is correct.</span></p>
+<p>And in domains which are verifiable, math, code, and other domains that are more rule based, this verification is a good way to give feedback back to the model so that it can correct its steps.</p>
+<p>So most of these workflows mean that the LLM needs to be better at planning. It needs to be better at multi-step reasoning, and it needs to be better at self-improvement. Like when it makes mistakes, it needs to be able to correct itself. So effectively, these are new paradigms that the current set of LLMs just with reasoning were not quite accomplishing. And these are some of the topics we do plan to cover in subsequent lectures. And just to drive the point home around coding agents. So this is a very simple example. I should have updated the slide for Cloud Code.</p>
+<p>But basically what this is showing is that you have an LLM agent and it&#x27;s interacting with the computer. These days just with the terminal, you give it an instruction where you might tell it that you want to implement a test. And then it has some navigation of repositories, searching of files, all of these tool calls around viewing files, editing lines. And then it will go execute a bunch of commands in the terminal. And based on the output, it might be like, OK, I need to go edit this other file, or I need to go look at this other file. So if you look at this loop, this very much mirrors what was-- so this was not quite reliable last year.</p>
+<p>And it&#x27;s just starting to get reliable in what we are seeing in the realm of coding agents now. Yes? Can I ask why do you think it&#x27;s not reliable? The general architecture is, I would say, not changed that much. I mean, I think the paradigm is very much the same. It&#x27;s mostly a matter of more powerful models and then better RL. RL with verifiable rewards is working. The train time scaling is working well. I see. How did you [INAUDIBLE]?</p>
+<p>I mean, computer data, right. One of those two. But just also, once the models start to get better, there&#x27;s this self-improvement loop that kicks in. Because you can now generate tests, and the tests become more reliable. So in the published pieces of work, if you look at, say, code monkeys, which we covered last year, if you can generate unit tests for whatever code the model generated and then see if the generated unit tests are making things better, then that&#x27;s a very good way to verify things, right? Yeah, model based. It seems like to some extent, if we have good verifiers, we can make the model generate the right code.</p>
+<p>But the question is, how do we do that? And there are ways to do it. And we would be happy for you guys to take research projects in that domain, too. But obviously, it&#x27;s an active research area. But there are ways to make improvements that-- I think what you&#x27;re alluding to is this notion of generator verifier gaps. So it&#x27;s easy for models to generate a whole bunch of nonsense or sensible set of reasoning traces or useful set of content. But at the end of the day, whether that&#x27;s useful or not, we need feedback loop for that. And if you&#x27;re creative writing, how much feedback can you get?</p>
+<p>So human feedback ends up becoming a bottleneck. In domains where you can have good feedback, that&#x27;s where it&#x27;s possible to continue to improve the model. And that but we&#x27;re getting robust verification, a lot of robust verification is hard. So Azalia will cover a paper that she did in her lab about how to combine verifiers. But verification continues to be one of the bottlenecks in this space to make them better.</p>
+<p>Yes? Intuitively, I think free training, you get ability to survive at such a large corpus.</p>
+<p>So just to me, intuitively, I&#x27;m trying to figure out why there&#x27;s such a big jump. Because we&#x27;re providing a reward signal, and we&#x27;re trying to elicit activities that shouldn&#x27;t exist in training.</p>
+<p>So I guess I&#x27;m just not-- I think this is still an active area of research. So there are different set of opinions around what really improves the model. Is it RL, or is it the pre-training, the diverse data by itself? And I don&#x27;t think there is a single point of consensus. At this point in time, both processes help. What you just said, which I will repeat for the class, is that if pre-training is the place where the model, after repeated sampling, should be able to at least have one solution correct out of if it was generating a large number of samples, then this notion of giving feedback should improve the passive one accuracy, but should not improve the model.</p>
+<p>Why is it such a big jump? But I think that whole loop is not completely well understood. It&#x27;s like the first signs of life and it starts to get commercialized. But I think there&#x27;s a lot more research still open in this area. Yeah, that&#x27;s right. So that&#x27;s only one way of thinking about it. There are at least some signs of life which say that you can continue to do RL, and that will continue to improve the model. Yeah. OK. Yeah. So this is basically covering a lot of the same set of points. But one abstraction that is worth taking away from this particular chart is that even when you give the model a goal, it has to clarify the user intent.</p>
+<p>So it&#x27;s not always obvious to it what the model user wants. And then it might go search for relevant files. And then whatever a set of actions which chooses to take, oftentimes, it needs some form of verification. In this particular case, it&#x27;s based on passing the test. And it might actually generate the test that it needs to pass, which is also mentioned here.</p>
+<p>But the key idea is that if you give it a task, how does it come back, and how do you know that it&#x27;s going to complete what you asked it for? Oftentimes, the users will not specify the problem well enough. So clarifying the user intent so that it knows what to go look for and how to verify starts to become important. And in models like O3, I think they have seen a lot of these traces end to end. So they are able to do the planning, the reasoning, the multi-step reasoning, and come back with the conclusion. But a lot of this is needed for completing tasks end to end or having an end to end goal.</p>
+<p>And where this has been super useful is if you have repetitive tasks like code migrations or version upgrades, or if you need to restructure the code base. Or if you have tasks that involve data engineering, where you have to basically do some sort of extract the data and then do some sort of cleanup on the data. Or if you have to do some sort of data warehouse migration. So a lot of this work tends to be extremely repetitive. And it&#x27;s much easier to just delegate it to coding agents. Same for unit tasks. Oftentimes much easier to start to give it to coding agents.</p>
+<p>Another area where agents have become extremely prevalent is in customer support. It&#x27;s one of the most thankless jobs that when you are on the customer support side of things have to do, and using LLMs to do that definitely streamlines the experience in interesting ways. So one simple set of examples ends up being like you can use them to do live transcription. So that gives you a very nice record. And you&#x27;re seeing that even for meetings these days. Another simple example is that you can have Knowledge Assist. So if you have a database of information, the customer support agent does not need to know everything.</p>
+<p>They can consult with the LLM and get an answer and surface the relevant article, which is better than having just search, an index and search by itself. Smart reply. So in chat, oftentimes, this has existed for a while, but you can use an agent to give chat responses. And then having a call summary can help you-you can use the call summary to really improve the customer experience by itself as well. So overall, I think in the customer support area, there&#x27;s multiple companies that are going after this area. But there are different segments of the problem that can be addressed using LLMs, and they have been super useful.</p>
+<p>And then there&#x27;s also the end to end stuff that&#x27;s starting to happen here. And then the third example that we will use and actually some of the homeworks is that if you have very complex topics and you want to provide a comprehensive report, earlier, it used to be that you had to do a literature review, and then you had to summarize each paper, and then you had to synthesize these things. And these days, you can just give it to an LLM and actually do it for you. In the study, maybe more articles than you would. So typically, if you give it an example like, say, 2022 Winter Olympics opening ceremony, it will identify what references to go look at.</p>
+<p>Then it will construct an outline of, OK, these references are relevant or not. And then summarize each of the references as to what is the relevant content, and then combine them to create a full length article. Which is very impressive in certain cases, and you&#x27;ll get to try it in one of the homeworks. And then even more forward looking. These research agents are starting to be used as AI scientists. So basically, they&#x27;re starting to assist scientists in, say, solving math problems or solving science problems. So here, the LLM is used as a brainstorming thing to come up with ideas.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">So the idea generation phase, then the experiment iteration phase, it might actually help you iterate on the experiments that you are hoping to work on. This is from the AI scientist paper.</span> And then in the paper writeup phase, it will help you improve the paper writer by itself.</p>
+<p>And what&#x27;s interesting is that even though these models hallucinate just the notion that they can come up with so many different set of ideas, as an AI scientist, it might actually brainstorm or give you ideas outside what you would have thought if you had just taken a bunch of courses or if you&#x27;re a researcher and you&#x27;ve been in the field for a long time. Sometimes reading the web allows these alarms to come up with ideas that are way outside the box and can be a very good brainstorming way. So these have been super useful in the AI scientist style of work.</p>
+<h2 id="logistics-grading">Logistics &amp; grading</h2>
+<p>OK, so let&#x27;s move to course logistics. But before that, do we have any questions? Yes? I just want to clarify. So is reasoning and chain of thought linked in training, or is it just a prompt engineering that was accidentally discovering these kind of capabilities in larger models? And if so, are there other emergent behaviors, sites, or reasoning that you think might be discovered?</p>
+<p>So I mean, it was not baked in by design.</p>
+<p><span class="ann-ul" style="text-decoration:underline; text-decoration-color:#FF3B30; text-decoration-thickness:2px; text-underline-offset:3px;">It was basically discovered. I mean, we gave it hard problems, and then we saw that it was basically-by having reasoning chains, it was doing better. So the GSM 8-K was the first paper that showed signs of life of this.</span> And then with larger model like PaLM, we actually saw that this was a very big deal. In one of the examples there was that it could explain jokes, which was very impressive. And then from there, the reasoning models have emerged. But it has read all of the web, so it has definitely seen data, which is more methodical and systematic.</p>
+<p>But the reasoning models are trained to be reasoning more and more, right.</p>
+<p>The entire reasoning is not an emergent behavior. The reasoning models, they&#x27;re trained to be thinking. But the models are converging. So the models are going to be trained such that they know when they need a lot of reasoning and when they don&#x27;t. And to generate the answers. But chain of thought originally was an emergent behavior. They noticed that, oh, if we explain things, a model gets better. Are there any emergent behaviors in larger models? I don&#x27;t think I would see it as emergent behaviors per se. But I think as I was mentioning, we usually go looking for certain things, right.</p>
+<p>So in the agentic workflows, what we&#x27;re looking for is planning, which is a form of reasoning. We&#x27;re looking for multi-step reasoning, which we will cover in class as well. And then we&#x27;re looking for self-improvement or self-correction. So all of these capabilities would be nice to have. And what gets the models there is a set of questions that are worth-there are papers on this kind of thing. Like self-correction, backtracking, things like that. It&#x27;s like yes, you could call it emergent, but you could also say, think about it, that they have seen this kind of behavior.</p>
+<p>And it&#x27;s like it&#x27;s reinforced in the way that they&#x27;re fine tuned.</p>
+<p>So yeah, it&#x27;s hard to say.</p>
+<p>OK, so let&#x27;s go through the logistics for the class.</p>
+<p>Here&#x27;s a list of all the amazing topics that you&#x27;re going to learn about.</p>
+<p>Yeah. This is very cool. I think the main thing to remember here is that the overall theme stays the same. And then we&#x27;ll also have guest lectures around from folks in frontier AI labs and covering things all the way from say, how has post training evolved, or even multimodal agents in robotics. So it&#x27;s going to be a mix of lectures and guest lectures.</p>
+<p>And of course, your project presentations.</p>
+<p>So here is some logistics that you all know. The prereq are there. Just make sure that you are comfortable with these prereqs as you register in the class. So we have the external website. But make sure that you check Canvas.</p>
+<p>That&#x27;s where we send out the latest updates at all times.</p>
+<p>And we try to upload the lectures before we start in every class, so you have access to the lectures. And we already have the due dates for all the assignments and all the projects. So you can check it out. So this quarter, we are going to have three homeworks. That&#x27;s a difference from between this class, and that&#x27;s one of the differences. So we have one more homework for you all that we have designed.</p>
+<p>And the TAs have done a great job. And that helps you hopefully learn these topics better and more in depth. And then we also have a course project. So the course project is where you can unleash your creativity and your way of building agentic systems or going deeper into a question and designing experiments around it and see what works and what doesn&#x27;t. We will provide some examples or suggestions, but it could be completely on you how to design this project.</p>
+<p>You will have some examples from last year, like the successful projects from last year as well. It&#x27;s going to be uploaded to Canvas or-- Actually, we&#x27;ll display them on the website. Oh, on the website. Oh, cool. The public website, so you can also see that.</p>
+<p>So yeah. So for the course project, I think the main thing to remember is that we will have API credits, and you can work in teams of two to four people. Right? Yeah. Or up to four, I guess. Up to four? OK. You can be one if you really want that. We suggest you team up with others.</p>
+<p>At the very least, you have more credit collectively so you can run more experiments. But then you might also find a friend collaborator along the way, and you can do something bigger.</p>
+<p>And we are going to have this-what is this? The course project. Yeah, we&#x27;re going to let you know about some of the previous years and some ideas that you can take. Here are some course project examples that are acceptable. For example, a new evaluation data set or a new benchmark.</p>
+<p>You can design a project around the reliability of an agentic system that already exists. You can take a benchmark that exists and try to hill climb on it with whatever idea, great idea that you have. And then or you can just-- we are going to have a whole lot of papers covered in this course. And we are showing all of that to you. They&#x27;re all on the website. So as we give these lectures, we expect you to also have read those papers or read the papers along the way and develop better and deeper intuitions on how these methods work. And your project could always be improving those or questioning one of the decisions that they have made and trying to change that or evaluate that.</p>
+<p>Negative examples are like a survey paper.</p>
+<p>We want something researchy here. So we just don&#x27;t want just an app that you put together and you just show us something. It has to be like, here is the hypothesis.</p>
+<p>Here is the question that we wanted to answer. Here is the type of improvement we wanted to see or the type of properties we wanted to analyze. And then we have built that. Right, we want something that-something more than white coding, basically.</p>
+<p>In terms of milestones, I think it&#x27;s worthwhile to remember that you want to start early. So you need to have a project proposal somewhere around-- I think we put it early October. And then-- It&#x27;s on the website, yeah. It&#x27;s on the website. And then for the midterm project presentation, we do want you to have some progress. So two weeks after the project proposal, we do expect you to have-- so start thinking about what experiments you want to run by the time you get to the project proposal so that you actually go run them for the midterm projects. So we do expect you to have made some progress in the midterm project presentation.</p>
+<p>It should not just be, here is a proposal. And then the final report has a lot of weight. And then the final poster presentation will be the end of the quarter.</p>
+<p>Yes. Let&#x27;s see if we do a [INAUDIBLE].</p>
+<p>I think so. If you add to it, right.</p>
+<p>[INAUDIBLE] is independent study, right? Yeah, independent research. Yeah, yeah, that&#x27;s fine. I think-- I mean, as long as you&#x27;re doing actual work and it&#x27;s not just like reusing the work from an exact copy of something, yeah. We had students publishing papers out of their projects in the last quarter. So in the last time we taught the class. So that&#x27;s something we could be one of you or many of you this time, again, turning your research project, working more on it, and then turning it into a publication at conferences.</p>
+<p>And so here is a save the date for our poster presentation.</p>
+<p>It&#x27;s going to be December 12, 4:00 to 6:00 PM. So we would want you to be there and present the posters.</p>
+<p>We&#x27;ll have people from industry joining. That&#x27;s where you can brag about what you&#x27;ve done and just meet new people. Here is the course grading rubric. So we have three homeworks. That&#x27;s 50% of your entire grade.</p>
+<p>And then another 50% is on the project. And the duration of these are aligned with how much the grading is allocated to each of these.</p>
+<p>And we, of course, expect you to honor the honor code.</p>
+<p>And let&#x27;s see, office hours will be posted on Canvas.</p>
+<p>You can ask your questions. We really, really encourage you to ask questions on Edson and make it public. Probably if you have a question, it&#x27;s very likely others have the same question. So please help us do broadcast this to everybody.</p>
+<p>Edson is, again, you can ask questions, and then Gradescope is where you submit your project milestones and everything else. Yeah, the homeworks and everything. We have the following late policy that we think is within the generous-on the generous side of things. And because the class is big this quarter, we really can&#x27;t make any exceptions. So try to use these late days wisely.</p>
+<p>Audits are not allowed, but we will have the course-we will have the videos-- Videos on YouTube, eventually. Eventually. And that&#x27;s it. Any questions?</p>
+<p>No? All right. OK. Thanks, everyone.</p>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Part 1</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Converted from lecture video • Generated 2026-10-14 07:03
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=7">
+<script type="application/json" id="rr-notes">{"so in today's lecture, we'll start with an overview of large language models": "This is the premise of this lecture.", "as you scale up the number of parameters in a model, they get better": "According to Scaling Laws three things that improved performance of the model are compute, dataset size and parameters count. Scaling Laws Paper: https://arxiv.org/abs/2001.08361", "until last year, where this was starting to hit some kind of a saturation point": "SLMs kind of defeat this Scaling Laws purpose and which might be the reason, SLMs performing good and which kind of against the Scaling laws.", "they have emergent behavior where the capabilities like reasoning only emerge in larger models": "As, models became large things that got better are: 1. Model was good with just zero shot learning. 2. Reasoning behavior has emerged from the bigger models, which wasn't seen before. 3. Chain-of-thought behavior.", "two important pieces here were the instruction tooling and the reinforcement learning from human feedback": "Other than Scaling, these were the two important aspects which improved the model performance. But how did models get reasoning behavior??", "we fine tune the model on those, and the model becomes much better as a result of that": "Quality of data is very important!!!", "in all of these cases, they do better than the gpt-4o model": "Llama 3 8B model performed better when repeated sampling was performed, showing inference scaling is important.", "bringing these two together became a big piece in thinking models and reasoning models": "Bringing Fine-tuning & Test-time scaling."}</script>
+<script src="../../assets/annotate.js?v=7" data-rr-book="cs329a-self-improving-ai-agents" data-rr-page="part01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=7"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+</body>
+</html>

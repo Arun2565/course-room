@@ -1,0 +1,124 @@
+/* guide.css — lesson/guide blocks for guide-structured reader books.
+ * Scoped under .guide-page. Uses the site palette with fallbacks so it
+ * works on both light and dark themes. Never touches .rr-ui behavior:
+ * interactive quiz blocks carry .rr-ui so the highlighter leaves them alone. */
+.guide-page .g-dek {
+  font-family: 'Spectral', Georgia, serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: var(--text2, #55534e);
+  margin: 2px 0 26px;
+  max-width: 62ch;
+}
+.guide-page .g-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text3, #8a867e);
+  margin: -14px 0 26px;
+}
+.guide-page .g-meta a { color: var(--text2, #55534e); }
+.guide-page h2 {
+  margin-top: 2.2em;
+}
+.guide-page table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 22px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.guide-page th, .guide-page td {
+  text-align: left;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border, rgba(0,0,0,0.07));
+  vertical-align: top;
+}
+.guide-page thead th {
+  font-family: 'DM Mono', monospace;
+  font-weight: 400;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3, #8a867e);
+  border-top: none;
+  border-bottom: 1px solid var(--border2, rgba(0,0,0,0.14));
+}
+.guide-page tbody tr:last-child td {
+  border-bottom: 1px solid var(--border, rgba(0,0,0,0.07));
+}
+/* margin-note style callout (mynote): shows inline, never in the gutter
+ * (the gutter belongs to the reader's own sticky notes) */
+.guide-page .g-callout {
+  border-left: 2px solid var(--accent, #8a6820);
+  background: var(--bg2, #f0ede6);
+  border-radius: 0 4px 4px 0;
+  padding: 12px 16px;
+  margin: 18px 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.guide-page .g-callout p { margin: 6px 0; }
+.guide-page .g-callout p:first-child { margin-top: 0; }
+.guide-page .g-callout p:last-child { margin-bottom: 0; }
+/* takeaways / mistakes lists */
+.guide-page ul.g-takeaways { list-style: none; margin-left: 0; padding-left: 0; }
+.guide-page ul.g-takeaways li {
+  padding-left: 26px;
+  position: relative;
+  margin: 10px 0;
+}
+.guide-page ul.g-takeaways li::before {
+  content: '—';
+  position: absolute;
+  left: 2px;
+  color: var(--accent, #8a6820);
+  font-weight: 700;
+}
+/* quiz */
+.guide-page .g-quiz {
+  border: 1px solid var(--border, rgba(0,0,0,0.07));
+  border-radius: 4px;
+  padding: 16px 18px;
+  margin: 18px 0;
+}
+.guide-page .g-q { margin: 0 0 12px; font-size: 1rem; }
+.guide-page .g-opts { display: flex; flex-direction: column; gap: 8px; }
+.guide-page .g-opts button {
+  text-align: left;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  background: var(--bg, #faf7f0);
+  color: var(--text, #1a1815);
+  border: 1px solid var(--border2, rgba(0,0,0,0.14));
+  border-radius: 3px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.guide-page .g-opts button:hover { border-color: var(--accent, #8a6820); }
+.guide-page .g-opts button.picked { border-color: var(--accent, #8a6820); }
+.guide-page .g-opts button.right {
+  border-color: #3d7a44;
+  background: rgba(61, 122, 68, 0.08);
+}
+.guide-page .g-opts button.wrong {
+  border-color: var(--danger, #a33b2a);
+  background: rgba(163, 59, 42, 0.07);
+}
+.guide-page .g-opts button:disabled { cursor: default; opacity: 0.92; }
+.guide-page .g-explain {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text2, #55534e);
+}
+.guide-page .g-score {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text2, #55534e);
+  margin: 20px 0 0;
+}

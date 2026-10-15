@@ -1,0 +1,391 @@
+/* rr-annotate UI. Uses the chapter page's own theme vars, with fallbacks. */
+:root {
+  --rr-accent: var(--accent, #A34A2E);
+  --rr-ink: var(--ink, #2D2522);
+  --rr-ink2: var(--ink-2, #6E625B);
+  --rr-surface: var(--surface, #FFFFFF);
+  --rr-border: var(--border, rgba(163, 74, 46, 0.15));
+}
+
+#rr-home-link {
+  font-size: 0.8rem;
+  color: var(--rr-ink2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+#rr-home-link:hover { color: var(--rr-accent); }
+#rr-marks-btn {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.rr-header-actions #rr-marks-btn {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.rr-u { cursor: pointer; border-radius: 2px; }
+.rr-u-hl {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 1px 2px;
+}
+.rr-u-ul { padding-bottom: 1px; }
+.rr-u.rr-has-note { outline: 1px dashed #999; outline-offset: 1px; }
+.rr-flash { animation: rrflash 1.6s ease; }
+@keyframes rrflash { 0%, 40% { filter: brightness(1.4); } 100% { filter: none; } }
+
+/* Selection toolbar. Read as three zones: mark it, ink it, write on it. */
+#rr-toolbar {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  gap: 8px;
+  align-items: center;
+  background: #1c1811;
+  border: 1px solid #3b332a;
+  border-radius: 999px;
+  padding: 7px 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  max-width: calc(100vw - 16px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+#rr-toolbar .rr-div {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 0;
+  background: #453b2f;
+  flex: none;
+}
+
+/* Action buttons read as small instrument labels, not heavy cards. */
+#rr-toolbar button {
+  font-family: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid #4c4235;
+  background: #322a21;
+  color: #f0e9db;
+  border-radius: 6px;
+  padding: 7px 11px;
+  line-height: 1;
+  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+}
+#rr-toolbar button:hover {
+  background: #3f3629;
+  border-color: #6b5c47;
+  color: #fff8e8;
+}
+#rr-toolbar button.on,
+#rr-toolbar [data-rr-style].on {
+  border-color: #c9a227;
+  color: #ffe9a8;
+  background: #3b3120;
+}
+#rr-toolbar button:focus-visible {
+  outline: 2px solid #ffe9a8;
+  outline-offset: 2px;
+}
+
+/* Underline previews itself: a drawn red rule under the label. */
+#rr-toolbar .rr-underline {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+#rr-toolbar .rr-underline .rr-rule {
+  order: 2;
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: #ff3b30;
+}
+
+/* The ink tray. Four colors sit recessed, the active one lifts and rings gold. */
+#rr-toolbar .rr-tray {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #14110c;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+#rr-toolbar .rr-tray .rr-sw {
+  flex: none;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transition: transform 0.13s ease, box-shadow 0.13s ease;
+}
+#rr-toolbar .rr-tray .rr-sw:hover { background-color: inherit; transform: translateY(-1px); }
+#rr-toolbar .rr-tray .rr-sw.on {
+  box-shadow: 0 0 0 2px #14110c, 0 0 0 3.5px #c9a227, inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+#rr-tb-err { color: #ff8a80; font-family: 'DM Mono', ui-monospace, monospace; font-size: 10.5px; white-space: nowrap; }
+#rr-toolbar #rr-tb-remove { border-color: #7a3129; background: #3d211d; color: #ffb3ab; }
+#rr-toolbar #rr-tb-remove:hover { border-color: #ff6b61; background: #4c2621; color: #ffd7d2; }
+
+/* Inline note composer: quote preview, writing box, save row. Spans the
+ * full bar width below the one-tap actions. */
+#rr-tb-compose {
+  flex: 1 1 100%;
+  min-width: min(300px, 78vw);
+  border-top: 1px solid #453b2f;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+#rr-tb-quote {
+  font-family: 'Spectral', Georgia, serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #b9ac93;
+  margin: 0 2px 8px;
+}
+#rr-tb-text {
+  width: 100%;
+  box-sizing: border-box;
+  background: #14110c;
+  border: 1px solid #4c4235;
+  border-radius: 8px;
+  color: #f0e9db;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  padding: 9px 11px;
+  resize: vertical;
+  min-height: 52px;
+}
+#rr-tb-text:focus { outline: none; border-color: #c9a227; }
+#rr-tb-text::placeholder { color: #6e625b; font-style: italic; }
+#rr-toolbar .rr-tb-actions { display: flex; gap: 8px; margin-top: 8px; }
+#rr-toolbar #rr-tb-save { border-color: #c9a227; background: #3b3120; color: #ffe9a8; }
+#rr-toolbar #rr-tb-save:hover { background: #4a3d26; }
+
+/* Touch: give the swatches a real target size. */
+@media (pointer: coarse) {
+  #rr-toolbar .rr-tray .rr-sw { width: 30px; height: 30px; }
+  #rr-toolbar button { padding: 10px 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #rr-toolbar button, #rr-toolbar .rr-sw { transition: none; }
+  #rr-toolbar .rr-sw:hover, #rr-toolbar .rr-sw.on { transform: none; }
+}
+/* When the bar wraps on a narrow screen, the dividers no longer mean anything. */
+@media (max-width: 420px) {
+  #rr-toolbar .rr-div { display: none; }
+  #rr-toolbar { border-radius: 14px; }
+}
+
+/* hover quick-remove badge on marks */
+#rr-unmark {
+  position: absolute;
+  z-index: 1100;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #d93025;
+  background: #fff;
+  color: #d93025;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  display: none;
+}
+#rr-unmark:hover { background: #d93025; color: #fff; }
+
+#rr-popup {
+  display: none;
+  z-index: 1000;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  background: var(--rr-surface);
+  color: var(--rr-ink);
+  border: 1px solid var(--rr-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+}
+.rr-pop-quote { font-style: italic; color: var(--rr-ink2); margin-bottom: 8px; }
+.rr-pop-note {
+  background: #fffbe9;
+  border: 1px dashed #c9a227;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.rr-dim { color: var(--rr-ink2); }
+#rr-popup textarea {
+  width: 100%;
+  min-height: 64px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--rr-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+}
+.rr-pop-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.rr-pop-row button, #rr-drawer button {
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid var(--rr-border);
+  background: transparent;
+  color: var(--rr-ink);
+  border-radius: 5px;
+  padding: 4px 10px;
+}
+.rr-pop-row button:hover, #rr-drawer button:hover {
+  border-color: var(--rr-accent);
+  color: var(--rr-accent);
+}
+
+#rr-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  max-width: 92vw;
+  height: 100vh;
+  z-index: 900;
+  background: var(--rr-surface);
+  color: var(--rr-ink);
+  border-left: 1px solid var(--rr-border);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  transform: translateX(105%);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.88rem;
+}
+#rr-drawer.open { transform: translateX(0); }
+.rr-draw-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rr-border);
+}
+.rr-draw-head span { display: flex; gap: 4px; }
+#rr-draw-list { overflow-y: auto; padding: 8px 14px 20px; }
+.rr-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--rr-border);
+  cursor: pointer;
+}
+.rr-row:hover { background: rgba(163, 74, 46, 0.06); }
+.rr-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #999;
+  transform: translateY(1px);
+}
+.rr-row-q {
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rr-row-n { color: var(--rr-accent); }
+.rr-row-t {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rr-ink2);
+}
+.rr-row-x {
+  flex-shrink: 0;
+  margin-left: 6px;
+  padding: 3px 9px !important;
+  line-height: 1.5;
+  border-color: transparent !important;
+  opacity: 0.45;
+}
+.rr-row:hover .rr-row-x { opacity: 1; }
+.rr-row-x:hover { color: #d93025 !important; border-color: #d93025 !important; }
+
+/* sidenotes: numbered margin notes beside their marked text (screenshot
+ * style) — plain text with an accent number, no card. Falls back to an
+ * inline note right after the mark when the margin is too narrow. */
+.reader-content, #epub-content { position: relative; }
+.rr-nref {
+  font-size: 0.68em;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 700;
+  color: #b8502e;
+  margin-left: 2px;
+  cursor: pointer;
+}
+.rr-nref-side {
+  color: #b8502e;
+  font-weight: 700;
+  margin-right: 6px;
+}
+.rr-sticky {
+  display: inline-block;
+  vertical-align: baseline;
+  max-width: 230px;
+  margin: 2px 0 2px 8px;
+  padding: 2px 0 2px 8px;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--rr-ink2);
+  background: none;
+  border-left: 2px solid var(--rr-border);
+  cursor: pointer;
+}
+.rr-sticky:hover { border-left-color: #b8502e; }
+/* marginal mode: notes pinned in the right empty space, aligned with marks */
+body.rr-marginals .reader-content {
+  margin-left: var(--rr-shift, 0px);
+  margin-right: auto;
+}
+body.rr-marginals .rr-sticky {
+  position: absolute;
+  width: 200px;
+  max-width: 200px;
+  margin: 0;
+  z-index: 5;
+}
+/* when margin notes are showing, the floating in-chapter CONTENTS card
+ * would cover them (fixed card vs scrolling notes), so it falls back to a
+ * plain static block above the text. Higher specificity than the injected
+ * wide-screen rule in chapter-toc.js. The left TOC panel still navigates. */
+body.rr-chapter.rr-notes-margin .rr-contents {
+  position: static;
+  top: auto;
+  right: auto;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  margin: 0 0 20px;
+  z-index: auto;
+}
