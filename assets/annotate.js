@@ -354,15 +354,27 @@
         '<button id="rr-tb-cancel">Cancel</button></div>' +
       '</div>';
     document.body.appendChild(tb);
+    // preventDefault keeps a real mouse press from collapsing the page
+    // selection; on touch it is a compat event from a tap and must not
+    // disturb the tap -> click chain, so it is skipped after any touch.
+    function noBlur(e) { if (!isCompatMouse()) e.preventDefault(); }
     tb.querySelector('[data-rr-style]').addEventListener('mousedown', function (e) {
-      e.preventDefault();
+      noBlur(e);
+      if (isCompatMouse()) return;
       pendingStyle = 'underline';
       pendingColor = UNDERLINE_COLOR;
       paintSwatches();
     });
-    tb.querySelector('[data-rr-style]').addEventListener('click', function () { savePending(false); });
+    tb.querySelector('[data-rr-style]').addEventListener('click', function () {
+      // set here (not only on mousedown) so touch taps, which skip the
+      // compat mousedown above, still underline instead of highlight
+      pendingStyle = 'underline';
+      pendingColor = UNDERLINE_COLOR;
+      paintSwatches();
+      savePending(false);
+    });
     tb.querySelectorAll('.rr-sw').forEach(function (s) {
-      s.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      s.addEventListener('mousedown', noBlur);
       s.addEventListener('click', function () {
         pendingStyle = 'highlight';
         pendingColor = s.dataset.rrColor;
@@ -370,13 +382,13 @@
         savePending(false);
       });
     });
-    document.getElementById('rr-tb-note').addEventListener('mousedown', function (e) { e.preventDefault(); });
+    document.getElementById('rr-tb-note').addEventListener('mousedown', noBlur);
     document.getElementById('rr-tb-note').addEventListener('click', function () { toggleComposer(); });
-    document.getElementById('rr-tb-save').addEventListener('mousedown', function (e) { e.preventDefault(); });
+    document.getElementById('rr-tb-save').addEventListener('mousedown', noBlur);
     document.getElementById('rr-tb-save').addEventListener('click', function () { saveComposer(); });
-    document.getElementById('rr-tb-cancel').addEventListener('mousedown', function (e) { e.preventDefault(); });
+    document.getElementById('rr-tb-cancel').addEventListener('mousedown', noBlur);
     document.getElementById('rr-tb-cancel').addEventListener('click', function () { closeComposer(); });
-    document.getElementById('rr-tb-remove').addEventListener('mousedown', function (e) { e.preventDefault(); });
+    document.getElementById('rr-tb-remove').addEventListener('mousedown', noBlur);
     document.getElementById('rr-tb-remove').addEventListener('click', function () { removePending(); });
     paintSwatches();
     return tb;
@@ -440,6 +452,74 @@
     tb.style.top = y + 'px';
   }
 
+  /* Touch support: mouseup alone never fires for long-press + handle-drag
+   * selection on mobile Safari/Chrome, which signal via selectionchange
+   * (continuous while dragging) and touchend (final). lastTouchEnd also
+   * lets the mousedown-hide below tell compat events from real mice. */
+  var lastTouchEnd = 0;
+  function sawTouch() {
+    try { lastTouchEnd = Date.now(); } catch (e) { lastTouchEnd = 1; }
+  }
+  function isCompatMouse() {
+    try { return Date.now() - lastTouchEnd < 600; } catch (e) { return lastTouchEnd > 0; }
+  }
+  function maybeShowToolbarFromSelection() {
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    var r = sel.getRangeAt(0);
+    if (r.collapsed || !norm(r.toString())) return;
+    var node = r.commonAncestorContainer;
+    var el = node.nodeType === 1 ? node : node.parentElement;
+    if (el && el.closest && el.closest('pre, code, .rr-ui')) return;
+    var rects = r.getClientRects();
+    if (!rects.length) return;
+    pending = { range: r.cloneRange(), quote: r.toString(), overlap: marksOverlapping(r) };
+    showToolbar(rects[0], pending.overlap);
+  }
+  var selChangeTimer = null;
+  function chromeBusy() {
+    // note composer or popup owns the interaction: selection events
+    // must not hide the toolbar mid-typing or fight the popup
+    try {
+      var c = document.getElementById('rr-tb-compose');
+      if (c && c.style.display === 'block') return true;
+      var p = document.getElementById('rr-popup');
+      if (p && p.style.display === 'block') return true;
+    } catch (e) {}
+    return false;
+  }
+  function selectionLive() {
+    try {
+      var sel = window.getSelection();
+      if (!sel.rangeCount) return false;
+      var r = sel.getRangeAt(0);
+      return !r.collapsed && !!norm(sel.toString());
+    } catch (e) { return false; }
+  }
+  document.addEventListener('selectionchange', function () {
+    if (selChangeTimer) clearTimeout(selChangeTimer);
+    selChangeTimer = setTimeout(function () {
+      selChangeTimer = null;
+      if (chromeBusy()) return;
+      if (selectionLive()) maybeShowToolbarFromSelection();
+      else hideToolbar();
+    }, 300);
+  });
+  document.addEventListener('touchend', function (e) {
+    sawTouch();
+    try {
+      var t = e && e.target;
+      if (t && t.closest && t.closest('#rr-toolbar,#rr-popup,#rr-drawer')) {
+        maybeShowToolbarFromSelection();
+        return;
+      }
+    } catch (e2) {}
+    setTimeout(function () {
+      if (chromeBusy()) return;
+      if (selectionLive()) maybeShowToolbarFromSelection();
+      else hideToolbar();
+    }, 60);
+  });
   document.addEventListener('mouseup', function (e) {
     // writing or clicking inside the bar itself must not restart selection
     try {
@@ -447,20 +527,11 @@
       if (tb0 && e && e.target && (tb0 === e.target || tb0.contains(e.target))) return;
     } catch (e2) {}
     setTimeout(function () {
-      var sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      var r = sel.getRangeAt(0);
-      if (r.collapsed || !norm(r.toString())) return;
-      var node = r.commonAncestorContainer;
-      var el = node.nodeType === 1 ? node : node.parentElement;
-      if (el && el.closest && el.closest('pre, code, .rr-ui')) return;
-      var rects = r.getClientRects();
-      if (!rects.length) return;
-      pending = { range: r.cloneRange(), quote: r.toString(), overlap: marksOverlapping(r) };
-      showToolbar(rects[0], pending.overlap);
+      maybeShowToolbarFromSelection();
     }, 30);
   });
   document.addEventListener('mousedown', function (e) {
+    if (isCompatMouse()) return; // compat event from a tap, not a real press
     var tb = document.getElementById('rr-toolbar');
     if (tb && (tb === e.target || tb.contains(e.target))) return;
     if (e.target.closest && e.target.closest('.rr-ui')) return;
