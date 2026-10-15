@@ -1,0 +1,73 @@
+/* course-theme: dark lab theme for the public course-room.
+ * Loaded AFTER the reader page's own <style> blocks, so these rules win
+ * ties and the :root tokens below re-skin the whole page. Local
+ * reading-room pages never load this file. */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+:root {
+  --bg: #0b0d10;
+  --surface: #12151b;
+  --ink: #e8e4da;
+  --ink-2: #a7adb8;
+  --accent: #ffc22e;
+  --accent-2: #2dd4bf;
+  --border: rgba(255, 255, 255, 0.09);
+  --font-reader: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html { font-size: 16px; }
+body {
+  font-family: var(--font-reader);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 0.94rem;
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgba(255, 194, 46, 0.35); }
+
+/* reader typography */
+.reader-content { max-width: 800px; }
+.reader-content p { font-size: 0.94rem; line-height: 1.9; }
+.reader-content h1 { letter-spacing: -0.02em; }
+.reader-content h2 {
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin: 2.6em 0 1em;
+}
+.reader-content h2::before { content: '// '; color: var(--ink-2); }
+.reader-content h3 { color: var(--ink); }
+.reader-content a { color: var(--accent-2); text-underline-offset: 3px; }
+.reader-content blockquote {
+  border-left: 3px solid var(--accent-2);
+  background: rgba(45, 212, 191, 0.05);
+}
+.chapter-title h1 { color: var(--ink); }
+.ann-badge { background: var(--accent); color: #0b0d10; font-weight: 700; }
+
+/* chrome */
+.top-bar {
+  background: rgba(11, 13, 16, 0.92);
+  border-bottom: 1px solid var(--border);
+}
+.top-bar-title { color: var(--ink-2); }
+.top-bar button { color: var(--ink-2); }
+.top-bar button:hover { background: rgba(255, 194, 46, 0.1); }
+button[title="Toggle theme"] { display: none; }
+.progress-fill { background: var(--accent); }
+.bottom-bar {
+  background: rgba(11, 13, 16, 0.92);
+  border-top: 1px solid var(--border);
+  color: var(--ink-2);
+}
+.footer { color: var(--ink-2); border-top: 1px solid var(--border); }
+.toc-panel { background: var(--surface); border-right: 1px solid var(--border); }
+.toc-header { border-bottom: 1px solid var(--border); }
+.toc-header h3 { color: var(--ink); }
+.toc-chapter { color: var(--ink); }
+.toc-chapter:hover { background: rgba(255, 194, 46, 0.07); border-left-color: var(--accent); }
+.toc-ann-count { background: var(--accent); color: #0b0d10; }
+.toc-subs { border-left-color: var(--border); }
+.toc-overlay { background: rgba(0, 0, 0, 0.55); }
