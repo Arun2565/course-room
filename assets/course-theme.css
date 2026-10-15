@@ -93,6 +93,18 @@ body.course-room .chapter-title h1 { color: var(--ink) !important; }
 body.course-room .ann-badge { background: var(--accent) !important; color: #0b0d10 !important; font-weight: 700; }
 html[data-theme="light"] body.course-room .ann-badge { color: #faf7f0 !important; }
 
+/* Apple-Books-style annotation wash: seamless marker that hugs the text
+ * (no side padding), soft radius on every line fragment. Underline stays
+ * Apple red, drawn gapless (see annotate.css skip-ink rule). */
+body.course-room .reader-content .rr-u-hl,
+body.course-room .reader-content span.ann-hl,
+body.course-room .reader-content span.ann-note {
+  padding: 2px 0 !important;
+  border-radius: 4px !important;
+  -webkit-box-decoration-break: clone !important;
+  box-decoration-break: clone !important;
+}
+
 /* slim reader bar + toc + next-chapter (chapter-toc.js chrome) */
 body.course-room .rr-topbar {
   background: var(--bg) !important;

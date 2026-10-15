@@ -14,8 +14,19 @@
   // Underline is always bright red: one tap, no palette step. Highlights
   // get four options — red stays reserved for underlines.
   var UNDERLINE_COLOR = '#FF3B30';
-  var HL_PALETTE = ['#FFE600', '#FF9E40', '#8AB8FF', '#7AE8A8'];
-  var HL_NAMES = { '#FFE600': 'yellow', '#FF9E40': 'orange', '#8AB8FF': 'blue', '#7AE8A8': 'green' };
+  var DEFAULT_PALETTE = ['#FFE600', '#FF9E40', '#8AB8FF', '#7AE8A8'];
+  var DEFAULT_NAMES = { '#FFE600': 'yellow', '#FF9E40': 'orange', '#8AB8FF': 'blue', '#7AE8A8': 'green' };
+  // Apple Books palette (yellow, green, blue, pink, purple), opt-in per
+  // page via data-rr-palette="apple" on the script tag (course-room).
+  var APPLE_PALETTE = ['#FFE45E', '#B2E28B', '#A9CDFD', '#FFC2D4', '#D3BDF5'];
+  var APPLE_NAMES = { '#FFE45E': 'yellow', '#B2E28B': 'green', '#A9CDFD': 'blue', '#FFC2D4': 'pink', '#D3BDF5': 'purple' };
+  var HL_PALETTE = DEFAULT_PALETTE, HL_NAMES = DEFAULT_NAMES;
+  try {
+    if (scriptTag.getAttribute('data-rr-palette') === 'apple') {
+      HL_PALETTE = APPLE_PALETTE;
+      HL_NAMES = APPLE_NAMES;
+    }
+  } catch (e) {}
 
   function norm(s) {
     return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toLowerCase();
