@@ -248,7 +248,7 @@
 
   /* ---------- reading settings (font / size / measure / theme / view) ---------- */
   var FSIZES = [['s', 'S'], ['m', 'M'], ['l', 'L']];
-  var RFONTS = [['spectral', 'Spectral'], ['newsreader', 'Newsreader'], ['source-serif', 'Source Serif 4'], ['caslon', 'Adobe Caslon Pro'], ['cormorant', 'Cormorant Garamond'], ['atkinson', 'Atkinson Hyperlegible']];
+  var RFONTS = [['spectral', 'Spectral'], ['newsreader', 'Newsreader'], ['source-serif', 'Source Serif 4'], ['caslon', 'Adobe Caslon Pro'], ['cormorant', 'Cormorant Garamond'], ['atkinson', 'Atkinson Hyperlegible'], ['jetbrains', 'JetBrains Mono']];
   function settingsState() {
     var s = { fsize: 'm', wide: '0', theme: 'light' };
     try {
@@ -281,6 +281,7 @@
     if (key === 'atkinson') return "'Atkinson Hyperlegible',Verdana,sans-serif";
     if (key === 'caslon') return "'Adobe Caslon Pro','Cormorant Garamond',Georgia,serif";
     if (key === 'cormorant') return "'Cormorant Garamond',Georgia,serif";
+    if (key === 'jetbrains') return "'JetBrains Mono',ui-monospace,Menlo,monospace";
     return "'Spectral',Georgia,serif";
   }
   function ensureFontMenu() {

@@ -48,6 +48,19 @@
   function saveHiddenBaked(set) {
     try { localStorage.setItem('rr-hidden:' + BOOK, JSON.stringify(Array.from(set))); } catch (e) {}
   }
+
+  /* Unwrap a mark span but keep its words: children move up into the
+   * parent, render-time sidenote numbers are dropped. Removing an
+   * annotation must never delete text — only the styling goes. */
+  function unwrapSpan(sp) {
+    try {
+      var parent = sp.parentNode;
+      if (!parent) return;
+      sp.querySelectorAll('.rr-nref').forEach(function (n) { n.remove(); });
+      while (sp.firstChild) parent.insertBefore(sp.firstChild, sp);
+      parent.removeChild(sp);
+    } catch (e) {}
+  }
   function removedNotes() {
     try { return new Set(JSON.parse(localStorage.getItem('rr-notes-removed:' + BOOK) || '[]')); }
     catch (e) { return new Set(); }
@@ -90,7 +103,7 @@
         clone.querySelectorAll('.rr-nref').forEach(function (n) { n.remove(); });
         q = clone.textContent;
       } catch (e) { q = sp.textContent; }
-      if (hidden.has(norm(q))) { sp.style.display = 'none'; return; }
+      if (hidden.has(norm(q))) { unwrapSpan(sp); return; }
       var note = bakedNotes[norm(q)] || '';
       if (rn.has(norm(q))) note = '';
       // a user note pinned onto this baked mark wins over its baked note
@@ -135,7 +148,7 @@
       saveHiddenBaked(hidden);
     }
     var el = document.querySelector('[data-rr-id="' + cssEsc(uid) + '"]');
-    if (el) el.style.display = 'none';
+    if (el) unwrapSpan(el);
   }
 
   function removeNote(uid, a) {

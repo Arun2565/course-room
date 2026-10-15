@@ -17,8 +17,6 @@ body.course-room {
   --accent: #ffc22e;
   --accent-2: #2dd4bf;
   --border: rgba(255, 255, 255, 0.09);
-  --font-reader: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --rr-readfont: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   background: var(--bg) !important;
   color: var(--ink) !important;
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
@@ -38,8 +36,21 @@ html[data-theme="light"] body.course-room {
 body.course-room ::selection { background: rgba(255, 194, 46, 0.35); }
 html[data-theme="light"] body.course-room ::selection { background: rgba(138, 104, 32, 0.25); }
 
-/* prose: JetBrains Mono by default; follows the Aa reader setting when
- * the visitor picks another font (site.css --rr-readfont takes over). */
+/* default reading font: JetBrains Mono; follows the Aa reader setting when
+ * the visitor picks another font (site.css --rr-readfont takes over).
+ * Scoped to unset/jetbrains only: an unscoped body-level --rr-readfont
+ * would beat :root on specificity and pin JetBrains for every choice. */
+html:not([data-rfont]) body.course-room,
+html[data-rfont="jetbrains"] body.course-room {
+  --font-reader: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --rr-readfont: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+/* Spectral is site.css's :root default, which loses to any body-level
+ * variable — so it needs an explicit rule like every other font. */
+html[data-rfont="spectral"] body.course-room {
+  --font-reader: 'Spectral', Georgia, serif;
+  --rr-readfont: 'Spectral', Georgia, serif;
+}
 html:not([data-rfont]) body.course-room .reader-content,
 html[data-rfont="jetbrains"] body.course-room .reader-content {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
@@ -67,8 +78,12 @@ html[data-rfont="jetbrains"] body.course-room .reader-content h3 {
   letter-spacing: -0.01em;
 }
 body.course-room .reader-content h1 { color: var(--ink) !important; }
-body.course-room .reader-content h2 { color: var(--accent) !important; font-size: 1.05rem !important; }
-body.course-room .reader-content h2::before { content: '// '; opacity: 0.55; }
+body.course-room .reader-content h2 {
+  color: var(--accent) !important;
+  font-size: 1.45rem !important;
+  line-height: 1.35 !important;
+  margin-top: 2em !important;
+}
 body.course-room .reader-content a { color: var(--accent-2) !important; text-underline-offset: 3px; }
 body.course-room .reader-content blockquote {
   border-left: 3px solid var(--accent-2) !important;

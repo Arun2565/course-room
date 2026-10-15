@@ -160,15 +160,81 @@
     try { window.localStorage.setItem('rr-font', nx); } catch (e) {}
     applyFont(nx);
   };
+  function fontStack(f) {
+    if (f === 'newsreader') return "'Newsreader',Georgia,serif";
+    if (f === 'source-serif') return "'Source Serif 4',Georgia,serif";
+    if (f === 'atkinson') return "'Atkinson Hyperlegible',Verdana,sans-serif";
+    if (f === 'caslon') return "'Adobe Caslon Pro','Cormorant Garamond',Georgia,serif";
+    if (f === 'cormorant') return "'Cormorant Garamond',Georgia,serif";
+    if (f === 'jetbrains') return "'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace";
+    return "'Spectral',Georgia,serif";
+  }
+  /* Aa font overview menu (same list + look as the EPUB reader's
+   * #epub-font-menu, whose styles live in site.css): every option previews
+   * in its own typeface, the current one gets a check outline. */
+  function ensureFontMenu() {
+    var m = document.getElementById('epub-font-menu');
+    if (m) return m;
+    m = document.createElement('div');
+    m.id = 'epub-font-menu';
+    m.className = 'rr-ui';
+    m.setAttribute('role', 'menu');
+    m.innerHTML = RFONTS.map(function (f) {
+      return '<button data-rr-font="' + f[0] + '" style="font-family:' + fontStack(f[0]) + '">' +
+        '<span>' + f[1] + '</span><span class="rr-ff-aa">Ag</span></button>';
+    }).join('');
+    Array.prototype.forEach.call(m.querySelectorAll('[data-rr-font]'), function (b) {
+      b.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        try { window.localStorage.setItem('rr-font', b.getAttribute('data-rr-font')); } catch (e) {}
+        applyFont(b.getAttribute('data-rr-font'));
+        hideFontMenu();
+      });
+    });
+    document.body.appendChild(m);
+    return m;
+  }
+  function hideFontMenu() {
+    var m = document.getElementById('epub-font-menu');
+    if (m) m.classList.remove('show');
+  }
+  window.toggleFontMenu = function () {
+    var m = ensureFontMenu();
+    if (m.classList.contains('show')) { hideFontMenu(); return; }
+    var cur = currentFont();
+    Array.prototype.forEach.call(m.querySelectorAll('[data-rr-font]'), function (b) {
+      if (b.classList && b.classList.toggle) b.classList.toggle('on', b.getAttribute('data-rr-font') === cur);
+    });
+    m.classList.add('show');
+    var mw = m.offsetWidth || 240, mh = m.offsetHeight || 150;
+    var x = 8, y = 8;
+    var anchor = document.getElementById('rr-font-btn');
+    if (anchor && anchor.getBoundingClientRect) {
+      var r = anchor.getBoundingClientRect();
+      var sx = window.scrollX || window.pageXOffset || 0;
+      var sy = window.scrollY || window.pageYOffset || 0;
+      x = Math.min(Math.max(8, r.left + sx), Math.max(8, sx + window.innerWidth - mw - 8));
+      y = r.bottom + sy + 8;
+      if (y + mh > sy + window.innerHeight - 8) y = Math.max(8 + sy, r.top + sy - mh - 8);
+    }
+    m.style.left = x + 'px';
+    m.style.top = y + 'px';
+  };
   function ensureFontBtn() {
-    if (document.getElementById('rr-font-btn')) { applyFont(currentFont()); return; }
+    var existing = document.getElementById('rr-font-btn');
+    if (existing) {
+      // older inline buttons blind-cycle; rewire to the overview menu
+      existing.onclick = function () { window.toggleFontMenu(); };
+      applyFont(currentFont());
+      return;
+    }
     var host = document.querySelector('.rr-topbar .rr-header-actions') ||
       document.querySelector('.rr-header-actions');
     if (!host || !host.appendChild) { applyFont(currentFont()); return; }
     var b = document.createElement('button');
     b.id = 'rr-font-btn';
     b.textContent = 'Aa';
-    b.onclick = function () { window.cycleFont(); };
+    b.onclick = function () { window.toggleFontMenu(); };
     host.appendChild(b);
     applyFont(currentFont());
   }
@@ -464,9 +530,21 @@
   saveProgress();
   if (window.addEventListener) {
     window.addEventListener('resize', sync);
+    // click outside the font menu closes it (menu button stops propagation)
+    document.addEventListener('click', function (e) {
+      var m = document.getElementById('epub-font-menu');
+      if (!m || !m.classList.contains('show')) return;
+      var t = e.target;
+      if (t && t.closest && (t.closest('#epub-font-menu') || t.closest('#rr-font-btn'))) return;
+      hideFontMenu();
+    });
     // Esc closes an open TOC (both the desktop drawer and mobile overlay)
     window.addEventListener('keydown', function (e) {
-      if ((e.key === 'Escape' || e.keyCode === 27) && !tocHidden()) window.toggleTOC();
+      if ((e.key === 'Escape' || e.keyCode === 27)) {
+        var fm = document.getElementById('epub-font-menu');
+        if (fm && fm.classList.contains('show')) { hideFontMenu(); return; }
+        if (!tocHidden()) window.toggleTOC();
+      }
     });
   }
   sync();
