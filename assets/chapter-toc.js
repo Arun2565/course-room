@@ -135,7 +135,7 @@
   };
 
     /* Aa reading-font switcher, saved as rr-font (shared with the EPUB reader) */
-  var RFONTS = [['spectral', 'Spectral'], ['newsreader', 'Newsreader'], ['source-serif', 'Source Serif 4'], ['caslon', 'Adobe Caslon Pro'], ['cormorant', 'Cormorant Garamond'], ['atkinson', 'Atkinson Hyperlegible']];
+  var RFONTS = [['spectral', 'Spectral'], ['newsreader', 'Newsreader'], ['source-serif', 'Source Serif 4'], ['caslon', 'Adobe Caslon Pro'], ['cormorant', 'Cormorant Garamond'], ['atkinson', 'Atkinson Hyperlegible'], ['jetbrains', 'JetBrains Mono']];
   function currentFont() {
     try { return window.localStorage.getItem('rr-font') || 'spectral'; }
     catch (e) { return 'spectral'; }

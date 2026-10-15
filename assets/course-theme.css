@@ -38,22 +38,31 @@ html[data-theme="light"] body.course-room {
 body.course-room ::selection { background: rgba(255, 194, 46, 0.35); }
 html[data-theme="light"] body.course-room ::selection { background: rgba(138, 104, 32, 0.25); }
 
-/* prose: mono everywhere, generous measure */
-body.course-room .reader-content {
+/* prose: JetBrains Mono by default; follows the Aa reader setting when
+ * the visitor picks another font (site.css --rr-readfont takes over). */
+html:not([data-rfont]) body.course-room .reader-content,
+html[data-rfont="jetbrains"] body.course-room .reader-content {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
   max-width: 800px !important;
   font-size: 0.94rem !important;
   line-height: 1.9 !important;
 }
-body.course-room .reader-content p,
-body.course-room .reader-content li,
-body.course-room .reader-content td,
-body.course-room .reader-content dd {
+html:not([data-rfont]) body.course-room .reader-content p,
+html[data-rfont="jetbrains"] body.course-room .reader-content p,
+html:not([data-rfont]) body.course-room .reader-content li,
+html[data-rfont="jetbrains"] body.course-room .reader-content li,
+html:not([data-rfont]) body.course-room .reader-content td,
+html[data-rfont="jetbrains"] body.course-room .reader-content td,
+html:not([data-rfont]) body.course-room .reader-content dd,
+html[data-rfont="jetbrains"] body.course-room .reader-content dd {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
-body.course-room .reader-content h1,
-body.course-room .reader-content h2,
-body.course-room .reader-content h3 {
+html:not([data-rfont]) body.course-room .reader-content h1,
+html[data-rfont="jetbrains"] body.course-room .reader-content h1,
+html:not([data-rfont]) body.course-room .reader-content h2,
+html[data-rfont="jetbrains"] body.course-room .reader-content h2,
+html:not([data-rfont]) body.course-room .reader-content h3,
+html[data-rfont="jetbrains"] body.course-room .reader-content h3 {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
   letter-spacing: -0.01em;
 }
@@ -142,26 +151,28 @@ body.course-settings .about-text {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
 
-/* ================= floating light/dark toggle ================= */
+/* ================= floating icon theme toggle ================= */
 #course-theme-fab {
   position: fixed;
   right: 18px;
   bottom: 18px;
   z-index: 400;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  color: var(--ink, #e8e4da);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent, #ffc22e);
   background: var(--surface, #12151b);
   border: 1px solid var(--accent, #ffc22e);
   border-radius: 999px;
-  padding: 9px 15px;
   cursor: pointer;
   opacity: 0.92;
+  padding: 0;
 }
 #course-theme-fab:hover { opacity: 1; }
+#course-theme-fab svg { display: block; }
 html[data-theme="light"] #course-theme-fab {
-  --ink: #241f1a;
   --surface: #fffdf8;
   --accent: #8a6820;
 }
