@@ -446,6 +446,7 @@
 <span class="ann-badge">📝 0 annotations</span>
 </div>
 <h2 id="introduction-logistics">Introduction &amp; logistics</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-01.jpg" alt="Introduction & logistics" loading="lazy"><figcaption>Fig. 1 — Introduction & logistics. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>Hello, everyone, and welcome to CME 295, transformers and large language models. My name is Afshine, and I&#x27;ll be teaching this class with Shervine, who&#x27;s in the back. So before we start, I just want to say a few words about ourselves. So Shervine and I are twin brothers, and we have very similar backgrounds. So we both went to a school in France called Centrale Paris. And then we came to the US for grad school. So on my end, I went to MIT. And then Shervine came here at Stanford in the ICME department.</p>
 <p>And then after that, we both went to the tech industry. So we first both went to Uber, and then we went to Google.</p>
 <p>And now we&#x27;re both at Netflix. So Shervine and I, we like LLMs.</p>
@@ -497,6 +498,7 @@
 <p>So we&#x27;re going to see that, especially in the second part of this class.</p>
 <p>So far so good? Cool. So with that, we&#x27;re going to start</p>
 <h2 id="tokenization">Tokenization</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-02.jpg" alt="Tokenization" loading="lazy"><figcaption>Fig. 2 — Tokenization. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>with one foundational concept, which is tokenization.</p>
 <p>So what is tokenization? So when we talk about text, text is not really something that models can understand. Models understand numbers. They don&#x27;t understand text. So the first goal is to find a way to represent that text in forms of something that models can understand, so in forms of numbers. So the way that we do that is we first try to divide the text into entities that we can then represent. And so the process of dividing the text into indivisible entities is what is called tokenization.</p>
 <p>So in this example, we have &quot;A cute Teddy bear is reading.&quot; And one possible tokenization is to say that &quot;A&quot; is one indivisible unit. &quot;Cute&quot; is another unit. &quot;Teddy bear&quot; can be another unit. And so on and so forth. So each of these elements is called a token.</p>
@@ -548,6 +550,7 @@
 <p>So for instance, when you want to start the generation, the convention is to feed your model with the beginning of sequence token, just to indicate to your token-- to your model that you want to generate text. Your model will then, at the end of its generation, just output the end of sequence token to just tell you that its generation is finished.</p>
 <p>So this is how it&#x27;s used. So &quot;What a cute Teddy bear&quot; would be beginning of sequence, &quot;What a cute Teddy bear&quot; and end of sequence, as an example. And then the last one that you may encounter is the padding token. And that one is meant to make your sequences be of a certain size. So this is sometimes used for efficiency perspectives.</p>
 <h2 id="embeddings-sequences">Embeddings &amp; sequences</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-03.jpg" alt="Embeddings & sequences" loading="lazy"><figcaption>Fig. 3 — Embeddings & sequences. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>If you want all your sequences to be of the same length, because we&#x27;ll see that we can represent that with vectors, matrices, tensors-and hardware loves things that have the same dimension-then padding can also be used.</p>
 <p>But I want to say that this list is by no means exhaustive and that you also have a lot of different conventions that people take. So this way of writing, BOS, EOS, this way of writing padding, it&#x27;s not universal.</p>
 <p>So just don&#x27;t be surprised if you encounter different variations. And nowadays, you have things like assistants. So you have a user, assistant. And those are other things that people represent with special tokens. So again, this is not an exhaustive list. But just know that such tokens exist, and they are meant to convey something about the text that the model should understand.</p>
@@ -599,6 +602,7 @@
 <p>And another thing that we have not mentioned, but RNNs, the problem is every time you want to predict the next token, you need to have the hidden state that encapsulates all the things that you have seen so far. So you always have to just go through tokens one at a time in order to make the next prediction. And when it comes to training such a model, it is just extremely slow.</p>
 <p>And it had great results at the time but not amazing either.</p>
 <h2 id="early-nlp-word-vectors">Early NLP &amp; word vectors</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-04.jpg" alt="Early NLP & word vectors" loading="lazy"><figcaption>Fig. 4 — Early NLP & word vectors. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>So for all of these reasons, in the 2010&#x27;s, people tried different techniques. And there is one technique that really stood out now</p>
 <p>from hindsight, but that is called attention.</p>
 <p>And the idea is as follows. Instead of solely relying on the hidden state to encapsulate the meaning of the sequence that you have seen so far, the idea is to let your model have direct connections from tokens that you have seen in the past. So in other words, we&#x27;re not saying only rely on the hidden state to know what has happened in the past. We&#x27;re saying you can also have direct connections to tokens that you have seen in the past in order to predict the next token. So in the translation example, so let&#x27;s assume you want to translate in French, &quot;A cute Teddy bear is reading.&quot; And let&#x27;s assume you say-- [SPEAKING FRENCH] And you want to predict the next word.</p>
@@ -650,6 +654,7 @@
 <p>So you have-- Q1 K1.</p>
 <p>Up until Q1 Kn.</p>
 <h2 id="attention-qkv">Attention &amp; QKV</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-05.jpg" alt="Attention & QKV" loading="lazy"><figcaption>Fig. 5 — Attention & QKV. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>And then you repeat that here. You put that here. You repeat that here. Now if you add a V in here, then what you obtain is V1 Vn.</p>
 <p>So again, you do your matrix multiplication.</p>
 <p>And here, what you get is-this times this plus this times this plus this times this, up until here. So you have the sum of Q1 Ki Vi.</p>
@@ -701,6 +706,7 @@
 <p>into one. So it&#x27;s because we have not seen it so far. So this is a trick that actually we can see now. So you may be referring to this one, the residual connections.</p>
 <p>So this is actually a trick to help your model learn better.</p>
 <h2 id="encoder-residual-connections">Encoder &amp; residual connections</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-06.jpg" alt="Encoder & residual connections" loading="lazy"><figcaption>Fig. 6 — Encoder & residual connections. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>So these residual connections, they&#x27;re very useful in architectures that are deep because they allow your model to pass in features directly instead of having them be modified by some sublayer.</p>
 <p>So one way I like to think about this is instead of thinking about each layer as something that modifies the whole input-so instead of saying my layer is just changing the input-so let&#x27;s assume your input is-let&#x27;s assume your input is x.</p>
 <p>Instead of saying that the output of a layer is some function of x, what you&#x27;re saying is the output of your layer is some function of x plus x.</p>
@@ -752,6 +758,7 @@
 <p>So you have this nice property, by the way, in the transformer, where a lot of the operations make the original dimension of embeddings invariant. So you start with D model, you do a bunch of attention calculations. You end up with D model. And then you go into the next layer, which is a feedforward neural network. That is a one hidden layer network that projects this D model representation into a DFF1.</p>
 <p>And then typically, you would have this dimension that is bigger than the model in order to allow for learning complex representations.</p>
 <h2 id="transformer-blocks">Transformer blocks</h2>
+<figure class="rr-fig rr-ui"><img src="figs/slide-07.jpg" alt="Transformer blocks" loading="lazy"><figcaption>Fig. 7 — Transformer blocks. Lecture slide. Source: CME295 Lecture 1.</figcaption></figure>
 <p>And you do all of that big N time.</p>
 <p>So in the original transformer paper, big N is equal to 6. So you do that a bunch of times. And then at the end of the encoder, you have for each token, a representation that represents that token in a context aware and learned way.</p>
 <p>Is everything good so far?</p>
