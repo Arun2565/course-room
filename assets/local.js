@@ -111,7 +111,7 @@
         out.push({
           book: op[0], page: op.slice(1, -1).join(':') || op[1], mine: false,
           over: true, q: String(ov.q || ''), note: ov.note,
-          color: '', style: ''
+          color: '', style: '', ts: Number(ov.ts) || 0
         });
         continue;
       }
@@ -125,7 +125,8 @@
         out.push({
           book: book, page: page, mine: mine,
           q: String(m.q || ''), note: String(m.note || ''),
-          color: String(m.color || ''), style: String(m.style || '')
+          color: String(m.color || ''), style: String(m.style || ''),
+          ts: Number(m.ts) || 0
         });
       });
     }

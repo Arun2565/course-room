@@ -21,14 +21,27 @@
     var sum = 0, target = files[0];
     for (var i = 0; i < files.length; i++) {
       sum += Math.min(100, pct(slug, files[i]));
-      if (pct(slug, files[i]) < 90) { target = files[i]; break; }
+    }
+    /* First unfinished chapter, found in its own pass: breaking out of the
+     * sum above used to under-report progress by every chapter after it. */
+    for (var j = 0; j < files.length; j++) {
+      if (Math.min(100, pct(slug, files[j])) < 90) { target = files[j]; break; }
     }
     var avg = Math.round(sum / files.length);
     var fill = card.querySelector('.bk-prog-fill');
     if (fill) fill.style.width = avg + '%';
     var lab = card.querySelector('.bk-prog-label');
     if (lab) {
-      lab.textContent = avg >= 100 ? 'Finished' : (avg > 0 ? avg + '% · Continue' : 'Not started');
+      var done = 0;
+      for (var d = 0; d < files.length; d++) {
+        if (Math.min(100, pct(slug, files[d])) >= 90) done++;
+      }
+      if (avg >= 100) lab.textContent = 'Finished';
+      else if (avg <= 0) lab.textContent = 'Not started';
+      /* A 21 chapter book sitting at 7% says nothing useful; count the
+       * chapters instead once there are more than a handful of them. */
+      else if (files.length > 6) lab.textContent = done + ' of ' + files.length + ' ch';
+      else lab.textContent = avg + '% · Continue';
     }
     card.setAttribute('href', 'books/' + slug + '/' + target);
   }
