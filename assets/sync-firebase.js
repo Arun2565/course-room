@@ -5,7 +5,8 @@
     // Not configured; expose a no-op status for Settings.
     window.__rrSync = { enabled: function(){return false;}, available: function(){return false;},
       status: function(){return 'not configured (fill assets/firebase-config.js)';},
-      setEnabled: function(){return false;}, now: function(){} };
+      setEnabled: function(){return false;},
+      now: function(){ return Promise.resolve('unavailable'); } };
     return;
   }
   // Lazy-load Firebase compat SDK if not present.
@@ -87,12 +88,49 @@
     return enabled;
   }
 
+  var lastSync = 0;
+
+  /* Full round trip: init, upload local marks, pull remote marks.
+   * Always resolves 'ok' / 'unavailable' / 'error' so Settings can report. */
+  function syncNow() {
+    if (!enabled) return Promise.resolve('off');
+    if (!window.RR_FIREBASE_CONFIG ||
+        window.RR_FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+      return Promise.resolve('unavailable');
+    }
+    return init().then(function () {
+      return docRef.get();
+    }).then(function (snap) {
+      if (!docRef) return 'error';
+      var remote = snap.exists ? (snap.data().marks || []) : [];
+      var key = 'rr:' + book + ':' + page;
+      var local = lsGet(key);
+      var merged = mergeMarks(local, remote);
+      if (merged.length !== local.length) {
+        lsSet(key, merged);
+        try { document.dispatchEvent(new CustomEvent('rr-marks-changed')); } catch (e) {}
+      }
+      return docRef.set({ marks: merged, updatedAt: Date.now() }, { merge: true });
+    }).then(function () {
+      lastSync = Date.now();
+      return 'ok';
+    }).catch(function (e) {
+      if (window.console) console.warn('[rr-sync] sync failed', e);
+      return 'error';
+    });
+  }
+
   window.__rrSync = {
     enabled: function () { return enabled; },
     available: function () { return true; },
-    status: function () { return enabled ? 'firebase sync on' : 'off'; },
+    status: function () {
+      if (!enabled) return 'off';
+      if (!lastSync) return 'firebase sync on, not synced yet';
+      var mins = Math.max(0, Math.round((Date.now() - lastSync) / 60000));
+      return 'firebase sync on, synced ' + (mins < 1 ? 'just now' : mins + ' min ago');
+    },
     setEnabled: setEnabled,
-    now: function () { if (enabled) { init().then(pull).catch(function(){}); } }
+    now: syncNow
   };
 
   // Auto-init if enabled.
