@@ -55,16 +55,29 @@
       var key = 'rr:' + book + ':' + page;
       var local = lsGet(key);
       var merged = mergeMarks(local, remote);
-      lsSet(key, merged);
-      try { document.dispatchEvent(new CustomEvent('rr-marks-changed')); } catch (e) {}
-    }).catch(function () {});
+      var changed = merged.length !== local.length;
+      if (changed) {
+        lsSet(key, merged);
+        try { document.dispatchEvent(new CustomEvent('rr-marks-changed')); } catch (e) {}
+      }
+      /* Upload anything this device already had but the store never saw. */
+      if (merged.length) push();
+    }).catch(function (e) {
+      if (window.console) console.warn('[rr-sync] pull failed', e);
+    });
   }
 
+  var pushTimer = null;
   function push() {
     if (!enabled || !docRef) return;
     var key = 'rr:' + book + ':' + page;
     var marks = lsGet(key);
-    docRef.set({ marks: marks, updatedAt: Date.now() }, { merge: true }).catch(function () {});
+    docRef.set({ marks: marks, updatedAt: Date.now() }, { merge: true })
+      .catch(function (e) { if (window.console) console.warn('[rr-sync] push failed', e); });
+  }
+  function schedulePush() {
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () { pushTimer = null; push(); }, 800);
   }
 
   function setEnabled(b) {
@@ -87,8 +100,11 @@
     init().then(function () { pull(); }).catch(function () {});
   }
 
-  // Push on local changes.
+  // Push on local changes, pull when a reader tab becomes visible.
   document.addEventListener('rr-marks-changed', function () {
-    if (enabled) push();
+    if (enabled) schedulePush();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && enabled && docRef) pull();
   });
 })();

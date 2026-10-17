@@ -96,7 +96,10 @@ h2::after{content:'';flex:1;height:1px;background:var(--border)}
   <p class="backup-note">Sync keeps highlights, underlines, notes and removals identical on every device through your private hosted library — no files to carry. It works on the hosted site only (this browser must reach its /api/sync); streak, progress, theme and font stay per-device.</p>
 </div>
 <script src="assets/local.js?v=2"></script>
-<script src="assets/sync.js?v=2"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/sync-firebase.js"></script>
 <script>
 (function () {
   'use strict';
