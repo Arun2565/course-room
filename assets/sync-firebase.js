@@ -1,125 +1,166 @@
-/* sync-firebase.js — cross-device mark sync via Firebase Firestore. */
+/* sync-firebase.js — cross-device annotation sync via Cloud Firestore.
+ *
+ * One document per localStorage key (`rr:<book>:<page>`), so every page of
+ * every book syncs, not just the one open in this tab. Merge is by mark uid
+ * with newest-timestamp-wins; removals propagate because the merged array
+ * replaces the stored one. No auth: this is a single-owner store, so the
+ * Firestore rules must be locked down to your origin.
+ *
+ * Listens for rr-marks-changed (dispatched by annotate.js on every save) and
+ * exposes window.__rrSync for settings.html.
+ */
 (function () {
   'use strict';
-  if (!window.RR_FIREBASE_CONFIG || window.RR_FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
-    // Not configured; expose a no-op status for Settings.
-    window.__rrSync = { enabled: function(){return false;}, available: function(){return false;},
-      status: function(){return 'not configured (fill assets/firebase-config.js)';},
-      setEnabled: function(){return false;},
-      now: function(){ return Promise.resolve('unavailable'); } };
-    return;
-  }
-  // Lazy-load Firebase compat SDK if not present.
-  function loadScript(src) { return new Promise(function (res, rej) {
-    if (document.querySelector('script[src="' + src + '"]')) return res();
-    var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  }); }
-  var APP_SRC = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
-  var FS_SRC = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
 
   var LS_ON = 'rr-sync-on';
-  var enabled = false;
-  try { enabled = localStorage.getItem(LS_ON) === '1'; } catch (e) {}
+  var LIST_PREFIXES = ['rr:', 'rr-import:'];
 
-  var app, db, unsub = null, book, page, docRef;
-
-  function init() {
-    return loadScript(APP_SRC).then(function () { return loadScript(FS_SRC); }).then(function () {
-      if (!firebase.apps.length) firebase.initializeApp(window.RR_FIREBASE_CONFIG);
-      app = firebase.app();
-      db = firebase.firestore();
-      try { db.enablePersistence({ synchronizeTabs: true }); } catch (e) {}
-      var el = document.querySelector('[data-rr-book]');
-      book = el ? el.getAttribute('data-rr-book') : 'unknown';
-      page = el ? el.getAttribute('data-rr-page') : 'unknown';
-      docRef = db.collection('marks').doc(book + '__' + page);
-    });
+  /* ---- placeholder guard ------------------------------------------- */
+  if (!window.RR_FIREBASE_CONFIG ||
+      window.RR_FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+    window.__rrSync = {
+      enabled: function () { return false; },
+      available: function () { return false; },
+      status: function () { return 'not configured (fill assets/firebase-config.js)'; },
+      setEnabled: function () { return false; },
+      now: function () { return Promise.resolve('unavailable'); }
+    };
+    return;
   }
 
-  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  /* ---- local helpers ------------------------------------------------ */
+  function on() {
+    try { return localStorage.getItem(LS_ON) === '1'; } catch (e) { return false; }
+  }
+  function setOn(b) {
+    try { localStorage.setItem(LS_ON, b ? '1' : '0'); } catch (e) {}
+    enabled = !!b;
+    return enabled;
+  }
+  function listKeys() {
+    var out = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i) || '';
+        for (var j = 0; j < LIST_PREFIXES.length; j++) {
+          if (k.indexOf(LIST_PREFIXES[j]) === 0) { out.push(k); break; }
+        }
+      }
+    } catch (e) {}
+    return out;
+  }
+  function lsList(k) {
+    try {
+      var a = JSON.parse(localStorage.getItem(k) || '[]');
+      return Array.isArray(a) ? a : [];
+    } catch (e) { return []; }
+  }
+  function lsSet(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+  }
+  function ts(m) { return (m && typeof m.ts === 'number' && m.ts) || 0; }
 
-  function mergeMarks(local, remote) {
+  function merge(local, remote) {
     var byUid = {};
     (remote || []).concat(local || []).forEach(function (m) {
       if (!m || typeof m.uid !== 'string') return;
-      if (!byUid[m.uid] || (m.ts || 0) > (byUid[m.uid].ts || 0)) byUid[m.uid] = m;
+      if (!byUid[m.uid] || ts(m) > ts(byUid[m.uid])) byUid[m.uid] = m;
     });
-    return Object.keys(byUid).map(function (u) { return byUid[u]; });
+    return Object.keys(byUid).sort(function (a, b) {
+      var A = byUid[a], B = byUid[b];
+      return (ts(A) - ts(B)) || (A.uid < B.uid ? -1 : 1);
+    }).map(function (u) { return byUid[u]; });
   }
 
-  function pull() {
-    if (!enabled || !docRef) return;
-    docRef.get().then(function (snap) {
-      var remote = snap.exists ? (snap.data().marks || []) : [];
-      var key = 'rr:' + book + ':' + page;
-      var local = lsGet(key);
-      var merged = mergeMarks(local, remote);
-      var changed = merged.length !== local.length;
-      if (changed) {
-        lsSet(key, merged);
-        try { document.dispatchEvent(new CustomEvent('rr-marks-changed')); } catch (e) {}
+  /* Firestore ids cannot contain most punctuation: book + page -> id. */
+  function docIdFor(key) { return key.replace(/[^A-Za-z0-9]+/g, '__'); }
+
+  /* ---- firebase boot ------------------------------------------------ */
+  var FS_URL = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+  var APP_URL = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+  var db = null, booted = null, enabled = false, lastSync = 0, pushTimer = null;
+
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var hit = document.querySelector('script[data-rr-src="' + src + '"]');
+      if (hit) return res();
+      var s = document.createElement('script');
+      s.src = src; s.setAttribute('data-rr-src', src);
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  function boot() {
+    if (booted) return booted;
+    booted = loadScript(APP_URL)
+      .then(function () { return loadScript(FS_URL); })
+      .then(function () {
+        if (!firebase.apps.length) firebase.initializeApp(window.RR_FIREBASE_CONFIG);
+        db = firebase.firestore();
+        try { db.enablePersistence({ synchronizeTabs: true }); } catch (e) {}
+        return db;
+      });
+    return booted;
+  }
+
+  function marks() { return db.collection('marks'); }
+
+  /* ---- push / pull -------------------------------------------------- */
+  function pushAll() {
+    var keys = listKeys();
+    if (!keys.length) return Promise.resolve(0);
+    var col = marks();
+    return Promise.all(keys.map(function (k) {
+      var list = lsList(k);
+      return col.doc(docIdFor(k))
+        .set({ key: k, marks: list, updatedAt: Date.now() })
+        .catch(function (e) {
+          if (window.console) console.warn('[rr-sync] push failed', k, e);
+        });
+    })).then(function () { return keys.length; });
+  }
+
+  function pullAll() {
+    var got = 0;
+    return marks().get().then(function (snap) {
+      snap.forEach(function (d) {
+        var data = d.data() || {};
+        var key = data.key;
+        if (!key) return;
+        var remote = Array.isArray(data.marks) ? data.marks : [];
+        var local = lsList(key);
+        var merged = merge(local, remote);
+        if (merged.length !== local.length) { lsSet(key, merged); got++; }
+      });
+      if (got) {
+        try {
+          document.dispatchEvent(new CustomEvent('rr-marks-changed'));
+        } catch (e) {}
       }
-      /* Upload anything this device already had but the store never saw. */
-      if (merged.length) push();
-    }).catch(function (e) {
-      if (window.console) console.warn('[rr-sync] pull failed', e);
+      return got;
     });
   }
 
-  var pushTimer = null;
-  function push() {
-    if (!enabled || !docRef) return;
-    var key = 'rr:' + book + ':' + page;
-    var marks = lsGet(key);
-    docRef.set({ marks: marks, updatedAt: Date.now() }, { merge: true })
-      .catch(function (e) { if (window.console) console.warn('[rr-sync] push failed', e); });
-  }
-  function schedulePush() {
-    if (pushTimer) clearTimeout(pushTimer);
-    pushTimer = setTimeout(function () { pushTimer = null; push(); }, 800);
-  }
-
-  function setEnabled(b) {
-    enabled = !!b;
-    try { localStorage.setItem(LS_ON, enabled ? '1' : '0'); } catch (e) {}
-    if (enabled) { init().then(function(){ pull(); }).catch(function(){}); }
-    return enabled;
-  }
-
-  var lastSync = 0;
-
-  /* Full round trip: init, upload local marks, pull remote marks.
-   * Always resolves 'ok' / 'unavailable' / 'error' so Settings can report. */
+  /* Full round trip. Always resolves 'ok'/'off'/'unavailable'/'error'. */
   function syncNow() {
     if (!enabled) return Promise.resolve('off');
-    if (!window.RR_FIREBASE_CONFIG ||
-        window.RR_FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
-      return Promise.resolve('unavailable');
-    }
-    return init().then(function () {
-      return docRef.get();
-    }).then(function (snap) {
-      if (!docRef) return 'error';
-      var remote = snap.exists ? (snap.data().marks || []) : [];
-      var key = 'rr:' + book + ':' + page;
-      var local = lsGet(key);
-      var merged = mergeMarks(local, remote);
-      if (merged.length !== local.length) {
-        lsSet(key, merged);
-        try { document.dispatchEvent(new CustomEvent('rr-marks-changed')); } catch (e) {}
-      }
-      return docRef.set({ marks: merged, updatedAt: Date.now() }, { merge: true });
-    }).then(function () {
-      lastSync = Date.now();
-      return 'ok';
-    }).catch(function (e) {
-      if (window.console) console.warn('[rr-sync] sync failed', e);
-      return 'error';
-    });
+    return boot()
+      .then(pullAll)
+      .then(pushAll)
+      .then(function () { lastSync = Date.now(); return 'ok'; })
+      .catch(function (e) {
+        if (window.console) console.warn('[rr-sync] sync failed', e);
+        return 'error';
+      });
   }
 
+  function schedulePush() {
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () { pushTimer = null; if (enabled) pushAll(); }, 900);
+  }
+
+  /* ---- public surface ------------------------------------------------ */
   window.__rrSync = {
     enabled: function () { return enabled; },
     available: function () { return true; },
@@ -129,20 +170,22 @@
       var mins = Math.max(0, Math.round((Date.now() - lastSync) / 60000));
       return 'firebase sync on, synced ' + (mins < 1 ? 'just now' : mins + ' min ago');
     },
-    setEnabled: setEnabled,
+    setEnabled: function (b) {
+      var on2 = setOn(b);
+      if (on2) syncNow();
+      return on2;
+    },
     now: syncNow
   };
 
-  // Auto-init if enabled.
-  if (enabled) {
-    init().then(function () { pull(); }).catch(function () {});
-  }
+  enabled = on();
 
-  // Push on local changes, pull when a reader tab becomes visible.
   document.addEventListener('rr-marks-changed', function () {
     if (enabled) schedulePush();
   });
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && enabled && docRef) pull();
+    if (!document.hidden && enabled) syncNow();
   });
+
+  if (enabled) syncNow();
 })();
