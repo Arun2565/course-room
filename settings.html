@@ -99,7 +99,7 @@ h2::after{content:'';flex:1;height:1px;background:var(--border)}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="assets/firebase-config.js"></script>
-<script src="assets/sync-firebase.js"></script>
+<script src="assets/sync-firebase.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -333,7 +333,10 @@ h2::after{content:'';flex:1;height:1px;background:var(--border)}
       if (!S) { syncSay('Sync unavailable in this browser.'); return; }
       if (!S.enabled()) { syncSay('Turn sync on first.'); return; }
       syncSay('Syncing\u2026');
-      S.now().then(function (r) {
+      var p;
+      try { p = S.now(); } catch (err) { syncSay('Sync client failed to start: ' + err.message); return; }
+      if (!p || typeof p.then !== 'function') { syncSay('Sync client is stale \u2014 hard refresh (Cmd+Shift+R).'); return; }
+      p.then(function (r) {
         if (r === 'ok') syncSay('Synced — ' + S.status() + '.');
         else if (r === 'off') syncSay('Turn sync on first.');
         else if (r === 'unavailable') syncSay('Firebase is not configured in this build.');
