@@ -86,8 +86,17 @@ h2::after{content:'';flex:1;height:1px;background:var(--border)}
   <div class="status" id="backup-status"></div>
   <p class="backup-note" id="backup-size"></p>
   <p class="backup-note">The export holds every highlight, note, reading position, finished book and streak day in one file. Move it to another browser or computer with Import. Books added from a link (Your Books) keep their notes in this browser; re-add the same link there and its file returns to the shelf.</p>
+
+  <h2>Sync</h2>
+  <div class="backup-row">
+    <button class="btn" id="btn-sync-toggle">Turn sync on</button>
+    <button class="btn" id="btn-sync-now">Sync now</button>
+  </div>
+  <div class="status" id="sync-status"></div>
+  <p class="backup-note">Sync keeps highlights, underlines, notes and removals identical on every device through your private hosted library — no files to carry. It works on the hosted site only (this browser must reach its /api/sync); streak, progress, theme and font stay per-device.</p>
 </div>
 <script src="assets/local.js?v=2"></script>
+<script src="assets/sync.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -292,6 +301,45 @@ h2::after{content:'';flex:1;height:1px;background:var(--border)}
       setTimeout(function () { location.reload(); }, 900);
     } catch (e) { say('Could not erase in this browser.'); }
   };
+
+  /* ---- Sync (hosted site only; assets/sync.js) ---- */
+  function syncSay(msg) { document.getElementById('sync-status').textContent = msg; }
+  function syncPaint() {
+    try {
+      var S = window.__rrSync;
+      if (!S) { syncSay('Sync unavailable in this browser.'); return; }
+      document.getElementById('btn-sync-toggle').textContent = S.enabled() ? 'Turn sync off' : 'Turn sync on';
+      var st = S.status();
+      if (st === 'off') syncSay('Sync is off. Turn it on here and on your other devices — marks then match everywhere.');
+      else if (st.indexOf('unavailable') === 0) syncSay('Sync needs the hosted library (this copy has no /api/sync). Use Export/Import here instead.');
+      else syncSay('Sync is on — ' + st + '.');
+    } catch (e) {}
+  }
+  document.getElementById('btn-sync-toggle').onclick = function () {
+    try {
+      var S = window.__rrSync;
+      if (!S) { syncSay('Sync unavailable in this browser.'); return; }
+      S.setEnabled(!S.enabled());
+      syncSay(S.enabled() ? 'Sync turned on — syncing now\u2026' : 'Sync turned off on this browser.');
+      setTimeout(syncPaint, 4000);
+    } catch (e) { syncSay('Could not change sync setting.'); }
+  };
+  document.getElementById('btn-sync-now').onclick = function () {
+    try {
+      var S = window.__rrSync;
+      if (!S) { syncSay('Sync unavailable in this browser.'); return; }
+      if (!S.enabled()) { syncSay('Turn sync on first.'); return; }
+      syncSay('Syncing\u2026');
+      S.now().then(function (r) {
+        if (r === 'ok') syncSay('Synced — ' + S.status() + '.');
+        else if (r === 'unavailable') syncSay('Sync needs the hosted library (this copy has no /api/sync).');
+        else syncSay('Sync did not complete (' + r + '). Try again.');
+        syncPaint();
+      });
+    } catch (e) { syncSay('Could not sync right now.'); }
+  };
+  syncPaint();
+  setTimeout(syncPaint, 6000);
 })();
 </script>
 <script src="assets/course-theme.js?v=3"></script>

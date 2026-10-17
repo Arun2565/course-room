@@ -40,67 +40,86 @@
 .rr-flash { animation: rrflash 1.6s ease; }
 @keyframes rrflash { 0%, 40% { filter: brightness(1.4); } 100% { filter: none; } }
 
-/* Selection toolbar. Read as three zones: mark it, ink it, write on it. */
+/* Reader content: kill double-tap zoom so double-tap word-select reaches
+ * us on touch devices. Pan, pinch-zoom and selection are unaffected. */
+.reader-content, #epub-content { touch-action: manipulation; }
+
+/* Selection toolbar: iPhone-style edit menu. Dark frosted pill, plain
+ * white actions, thin dividers, arrow pointing at the selection. */
 #rr-toolbar {
   position: fixed;
   z-index: 1000;
   display: none;
-  gap: 8px;
+  gap: 2px;
   align-items: center;
-  background: #1c1811;
-  border: 1px solid #3b332a;
-  border-radius: 999px;
-  padding: 7px 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(28, 28, 30, 0.94);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 5px 6px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
   max-width: calc(100vw - 16px);
   flex-wrap: wrap;
   justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+}
+@keyframes rrpop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+#rr-toolbar.rr-show { animation: rrpop 0.16s ease-out; }
+/* arrow toward the selected text; --rr-ax set by placeToolbar */
+#rr-toolbar.rr-above::after,
+#rr-toolbar.rr-below::after {
+  content: '';
+  position: absolute;
+  left: var(--rr-ax, 50%);
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+}
+#rr-toolbar.rr-above::after {
+  bottom: -7px;
+  border-top: 7px solid #232326;
+}
+#rr-toolbar.rr-below::after {
+  top: -7px;
+  border-bottom: 7px solid #2a2a2e;
 }
 #rr-toolbar .rr-div {
   width: 1px;
   align-self: stretch;
-  margin: 2px 0;
-  background: #453b2f;
+  margin: 6px 2px;
+  background: rgba(255, 255, 255, 0.25);
   flex: none;
 }
 
-/* Action buttons read as small instrument labels, not heavy cards. */
+/* Menu actions read as plain iOS items: white, title case, no chrome. */
 #rr-toolbar button {
-  font-family: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
   cursor: pointer;
-  border: 1px solid #4c4235;
-  background: #322a21;
-  color: #f0e9db;
-  border-radius: 6px;
-  padding: 7px 11px;
-  line-height: 1;
-  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+  border: 0;
+  background: none;
+  color: #fff;
+  border-radius: 7px;
+  padding: 8px 12px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
-#rr-toolbar button:hover {
-  background: #3f3629;
-  border-color: #6b5c47;
-  color: #fff8e8;
-}
-#rr-toolbar button.on,
-#rr-toolbar [data-rr-style].on {
-  border-color: #c9a227;
-  color: #ffe9a8;
-  background: #3b3120;
-}
-#rr-toolbar button:focus-visible {
-  outline: 2px solid #ffe9a8;
-  outline-offset: 2px;
-}
+#rr-toolbar button:active { background: rgba(255, 255, 255, 0.16); }
+#rr-toolbar button.on { color: #ffd60a; }
+#rr-toolbar button:focus-visible { outline: 2px solid #0a84ff; outline-offset: 1px; }
 
 /* Underline previews itself: a drawn red rule under the label. */
 #rr-toolbar .rr-underline {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 #rr-toolbar .rr-underline .rr-rule {
   order: 2;
@@ -108,44 +127,39 @@
   width: 100%;
   height: 2px;
   border-radius: 2px;
-  background: #ff3b30;
+  background: #ff453a;
 }
 
-/* The ink tray. Four colors sit recessed, the active one lifts and rings gold. */
+/* The ink tray: bare dots on the dark pill, active one ringed white. */
 #rr-toolbar .rr-tray {
   display: flex;
-  gap: 5px;
-  padding: 4px;
-  border-radius: 999px;
-  background: #14110c;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
+  gap: 9px;
+  padding: 6px 8px;
+  align-items: center;
 }
 #rr-toolbar .rr-tray .rr-sw {
   flex: none;
-  width: 21px;
-  height: 21px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 0;
   padding: 0;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-  transition: transform 0.13s ease, box-shadow 0.13s ease;
 }
-#rr-toolbar .rr-tray .rr-sw:hover { background-color: inherit; transform: translateY(-1px); }
 #rr-toolbar .rr-tray .rr-sw.on {
-  box-shadow: 0 0 0 2px #14110c, 0 0 0 3.5px #c9a227, inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px rgba(28, 28, 30, 0.94), 0 0 0 4px #fff, inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
-#rr-tb-err { color: #ff8a80; font-family: 'DM Mono', ui-monospace, monospace; font-size: 10.5px; white-space: nowrap; }
-#rr-toolbar #rr-tb-remove { border-color: #7a3129; background: #3d211d; color: #ffb3ab; }
-#rr-toolbar #rr-tb-remove:hover { border-color: #ff6b61; background: #4c2621; color: #ffd7d2; }
+#rr-tb-err { color: #ff8a80; font-size: 13px; white-space: nowrap; padding: 4px 8px; }
+#rr-toolbar #rr-tb-remove { color: #ff6961; }
+#rr-toolbar #rr-tb-remove:active { background: rgba(255, 105, 97, 0.2); }
 
 /* Inline note composer: quote preview, writing box, save row. Spans the
  * full bar width below the one-tap actions. */
 #rr-tb-compose {
   flex: 1 1 100%;
   min-width: min(300px, 78vw);
-  border-top: 1px solid #453b2f;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   margin-top: 4px;
   padding-top: 8px;
 }
@@ -154,42 +168,40 @@
   font-style: italic;
   font-size: 0.8rem;
   line-height: 1.5;
-  color: #b9ac93;
+  color: #c7c7cc;
   margin: 0 2px 8px;
 }
 #rr-tb-text {
   width: 100%;
   box-sizing: border-box;
-  background: #14110c;
-  border: 1px solid #4c4235;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
   border-radius: 8px;
-  color: #f0e9db;
+  color: #fff;
   font-family: 'Spectral', Georgia, serif;
-  font-size: 0.9rem;
+  font-size: 16px;
   line-height: 1.55;
   padding: 9px 11px;
   resize: vertical;
   min-height: 52px;
 }
-#rr-tb-text:focus { outline: none; border-color: #c9a227; }
-#rr-tb-text::placeholder { color: #6e625b; font-style: italic; }
-#rr-toolbar .rr-tb-actions { display: flex; gap: 8px; margin-top: 8px; }
-#rr-toolbar #rr-tb-save { border-color: #c9a227; background: #3b3120; color: #ffe9a8; }
-#rr-toolbar #rr-tb-save:hover { background: #4a3d26; }
+#rr-tb-text:focus { outline: none; box-shadow: 0 0 0 2px #0a84ff; }
+#rr-tb-text::placeholder { color: #8e8e93; font-style: italic; }
+#rr-toolbar .rr-tb-actions { display: flex; gap: 4px; margin-top: 8px; justify-content: flex-end; }
+#rr-toolbar #rr-tb-save { color: #0a84ff; font-weight: 600; }
+#rr-toolbar #rr-tb-cancel { color: #fff; }
 
 /* Touch: give the swatches a real target size. */
 @media (pointer: coarse) {
   #rr-toolbar .rr-tray .rr-sw { width: 30px; height: 30px; }
-  #rr-toolbar button { padding: 10px 13px; }
+  #rr-toolbar button { padding: 10px 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #rr-toolbar button, #rr-toolbar .rr-sw { transition: none; }
-  #rr-toolbar .rr-sw:hover, #rr-toolbar .rr-sw.on { transform: none; }
+  #rr-toolbar.rr-show { animation: none; }
 }
 /* When the bar wraps on a narrow screen, the dividers no longer mean anything. */
 @media (max-width: 420px) {
   #rr-toolbar .rr-div { display: none; }
-  #rr-toolbar { border-radius: 14px; }
 }
 
 /* hover quick-remove badge on marks */
@@ -216,34 +228,55 @@
   z-index: 1000;
   width: 300px;
   max-width: calc(100vw - 32px);
-  background: var(--rr-surface);
-  color: var(--rr-ink);
-  border: 1px solid var(--rr-border);
-  border-radius: 8px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  background: rgba(28, 28, 30, 0.96);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
   padding: 12px 14px;
   font-size: 0.9rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
 }
-.rr-pop-quote { font-style: italic; color: var(--rr-ink2); margin-bottom: 8px; }
+.rr-pop-quote { font-style: italic; color: #c7c7cc; margin-bottom: 8px; font-family: 'Spectral', Georgia, serif; }
 .rr-pop-note {
-  background: #fffbe9;
-  border: 1px dashed #c9a227;
+  background: rgba(255, 214, 10, 0.12);
+  border: 1px dashed rgba(255, 214, 10, 0.55);
   border-radius: 6px;
   padding: 8px 10px;
   margin-bottom: 8px;
+  color: #fff;
+  font-family: 'Spectral', Georgia, serif;
 }
 .rr-dim { color: var(--rr-ink2); }
 #rr-popup textarea {
   width: 100%;
   min-height: 64px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  border: 1px solid var(--rr-border);
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
   border-radius: 6px;
   padding: 6px 8px;
   margin-bottom: 8px;
 }
-.rr-pop-row { display: flex; gap: 8px; flex-wrap: wrap; }
+#rr-popup textarea:focus { outline: none; box-shadow: 0 0 0 2px #0a84ff; }
+.rr-pop-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+#rr-popup .rr-pop-row button {
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+#rr-popup .rr-pop-row button:active { background: rgba(255, 255, 255, 0.16); }
+#rr-popup #rr-pop-save { color: #0a84ff; font-weight: 600; }
+#rr-popup #rr-pop-remove, #rr-popup #rr-pop-rmnote { color: #ff6961; }
 .rr-pop-row button, #rr-drawer button {
   font-family: inherit;
   font-size: 0.8rem;
@@ -330,6 +363,23 @@
 }
 .rr-row:hover .rr-row-x { opacity: 1; }
 .rr-row-x:hover { color: #d93025 !important; border-color: #d93025 !important; }
+/* a saved mark the page could not place (stays in storage, listed here) */
+.rr-row.rr-orphan .rr-row-q { color: #d93025; }
+/* storage failure banner: writes silently failed, marks won't persist */
+#rr-store-warn {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  background: #3d211d;
+  color: #ffd7d2;
+  border-bottom: 1px solid #7a3129;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 16px;
+  text-align: center;
+}
 
 /* sidenotes: numbered margin notes beside their marked text (screenshot
  * style) — plain text with an accent number, no card. Falls back to an

@@ -245,6 +245,13 @@
    * This standalone version toggles data-theme on <html>, persists the
    * choice as rr-theme, and labels the header button. */
   window.__rrThemeOwned = true;
+  var SUN_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"'
+    + ' stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/>'
+    + '<path d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22'
+    + 'M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+  var MOON_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"'
+    + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
   function isDarkTheme() {
     try { return document.documentElement.getAttribute('data-theme') === 'dark'; }
     catch (e) { return false; }
@@ -252,6 +259,12 @@
   function syncThemeBtn() {
     var b = document.getElementById('rr-theme-btn');
     if (b) b.textContent = isDarkTheme() ? '☀ light' : '☾ dark';
+    var fab = document.getElementById('rr-theme-fab');
+    if (fab) {
+      fab.innerHTML = isDarkTheme() ? SUN_SVG : MOON_SVG;
+      var tip = isDarkTheme() ? 'Switch to light mode' : 'Switch to dark mode';
+      fab.title = tip; fab.setAttribute('aria-label', tip);
+    }
   }
   window.toggleTheme = function () {
     try {
@@ -270,6 +283,25 @@
       else if (saved === 'light') document.documentElement.removeAttribute('data-theme');
     } catch (e) {}
     syncThemeBtn();
+  }
+  /* Floating theme pill (course-room parity): some pages (all of
+   * build-llm-from-scratch, writing-research-papers, agentic-search) put
+   * their theme button in .top-bar, which site.css hides, and their button
+   * has no id so buildTopbar can't relocate it. If no theme button made
+   * it into the visible sticky bar, add the pill instead. */
+  function ensureThemeFab() {
+    try {
+      if (document.querySelector('.rr-topbar .rr-header-actions #rr-theme-btn')) return;
+      var fab = document.getElementById('rr-theme-fab');
+      if (!fab) {
+        fab = document.createElement('button');
+        fab.id = 'rr-theme-fab';
+        fab.className = 'rr-ui';
+        fab.onclick = function () { window.toggleTheme(); };
+        document.body.appendChild(fab);
+      }
+      syncThemeBtn();
+    } catch (e) {}
   }
 
   /* Slim sticky reader bar (reference look): back link, centered chapter
@@ -525,6 +557,7 @@
   buildTopbar();
   ensureFontBtn();
   ensureTheme();
+  ensureThemeFab();
   buildContents();
   buildNext();
   saveProgress();

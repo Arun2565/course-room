@@ -192,6 +192,24 @@ body {
   border-radius: 2px !important;
   padding: 1px 2px !important;
 }
+/* Apple-Books-style wash (same as course-room): seamless marker hugging
+ * the text on every line fragment, for user marks and baked marks alike. */
+.reader-content .rr-u-hl,
+.reader-content span.ann-hl,
+.reader-content span.ann-note,
+#epub-content .rr-u-hl {
+  padding: 2px 0 !important;
+  border-radius: 4px !important;
+  -webkit-box-decoration-break: clone !important;
+  box-decoration-break: clone !important;
+}
+/* Mobile: the toolbar is an iPhone-style pill floating by the selection
+ * (positioned by placeToolbar); it must never dock or stretch. */
+@media (max-width: 700px) {
+  #rr-toolbar {
+    max-width: calc(100vw - 16px);
+  }
+}
 
 /* Code blocks — blend with site surface */
 .reader-content pre, .reader-content pre.code {
@@ -826,6 +844,33 @@ body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
 #rr-toc-fab:hover {
   border-color: var(--accent, #8a6820);
   color: var(--accent, #8a6820);
+}
+
+/* ---- Floating theme pill (assets/chapter-toc.js creates #rr-theme-fab) ----
+ * Course-room parity: visible on every book page, including the ones whose
+ * own theme button lives in the hidden .top-bar. Light default, dark on tap. */
+#rr-theme-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 400;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent, #8a6820);
+  background: var(--bg2, #f0ede6);
+  border: 1px solid var(--border2, rgba(0, 0, 0, 0.14));
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+  padding: 0;
+}
+#rr-theme-fab svg { display: block; }
+:root[data-theme="dark"] #rr-theme-fab {
+  background: #161613;
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 /* ---- In-chapter CONTENTS card: same tokens as the reference page's

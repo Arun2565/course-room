@@ -96,9 +96,14 @@
   }
   function setOverlay(uid, q, note) {
     try {
-      if (!note || !note.trim()) localStorage.removeItem(overKey(uid));
-      else localStorage.setItem(overKey(uid), JSON.stringify({ q: q || '', note: note, ts: Date.now() }));
-    } catch (e) {}
+      if (!note || !note.trim()) {
+        localStorage.removeItem(overKey(uid));
+      } else {
+        var payload = JSON.stringify({ q: q || '', note: note, ts: Date.now() });
+        localStorage.setItem(overKey(uid), payload);
+        if (localStorage.getItem(overKey(uid)) !== payload) storageWarn();
+      }
+    } catch (e) { storageWarn(); }
   }
   function bakedMarks() {
     var hidden = hiddenBaked();
@@ -140,14 +145,35 @@
   /* ---------- user marks ---------- */
   function userMarks() { return lsGet(LS_USER); }
   function importMarks() { return lsGet(LS_IMPORT); }
-  function saveUser(list) { lsSet(LS_USER, list); }
+  function saveUser(list) { lsSet(LS_USER, list); verifyStored(LS_USER, list); }
+  /* Silent write failure (private browsing, full quota) is the classic
+   * "mark saves then vanishes": the DOM shows it, reload loses it. Verify
+   * every write by reading back, and warn visibly on the first failure. */
+  function verifyStored(k, v) {
+    var ok = false;
+    try { ok = (localStorage.getItem(k) === JSON.stringify(v)); } catch (e) { ok = false; }
+    if (!ok) storageWarn();
+  }
+  var __storeWarned = false;
+  function storageWarn() {
+    if (__storeWarned) return;
+    __storeWarned = true;
+    try { console.error('[rr-annotate] localStorage write failed — marks will not persist'); } catch (e) {}
+    try {
+      var b = document.createElement('div');
+      b.id = 'rr-store-warn';
+      b.className = 'rr-ui';
+      b.textContent = '\u26a0 Marks can\u2019t be saved in this browser (storage blocked or full). New annotations will vanish on reload \u2014 leave private browsing or free up space, then re-mark.';
+      document.body.appendChild(b);
+    } catch (e2) {}
+  }
 
   function removeMark(uid, a) {
     try { localStorage.removeItem(overKey(uid)); } catch (e0) {}
     var list = userMarks(), i = list.findIndex(function (x) { return x.uid === uid; });
     if (i !== -1) { list.splice(i, 1); saveUser(list); return; }
     var imp = importMarks(); i = imp.findIndex(function (x) { return x.uid === uid; });
-    if (i !== -1) { imp.splice(i, 1); lsSet(LS_IMPORT, imp); return; }
+    if (i !== -1) { imp.splice(i, 1); lsSet(LS_IMPORT, imp); verifyStored(LS_IMPORT, imp); return; }
     var q = (a && a.q) || '';
     if (!q) {
       var el0 = document.querySelector('[data-rr-id="' + cssEsc(uid) + '"]');
@@ -167,7 +193,7 @@
     var list = userMarks(), i = list.findIndex(function (x) { return x.uid === uid; });
     if (i !== -1) { list[i].note = ''; saveUser(list); return; }
     var imp = importMarks(); i = imp.findIndex(function (x) { return x.uid === uid; });
-    if (i !== -1) { imp[i].note = ''; lsSet(LS_IMPORT, imp); return; }
+    if (i !== -1) { imp[i].note = ''; lsSet(LS_IMPORT, imp); verifyStored(LS_IMPORT, imp); return; }
     var q = (a && a.q) || '';
     if (!q) {
       var el0 = document.querySelector('[data-rr-id="' + cssEsc(uid) + '"]');
@@ -182,7 +208,11 @@
     if (el) el.removeAttribute('title');
   }
 
-  /* ---------- text index (skips code, existing marks, rr UI) ---------- */
+  /* ---------- text index (skips code, existing marks, rr UI) ----------
+   * .rr-nref (render-time sidenote numbers) MUST be skipped too: the index
+   * is built both at save time (refs present) and on reload (refs stripped
+   * by clearUserMarks first). Indexing them made the two disagree, so marks
+   * placed near noted passages could never be found again. */
   function indexDoc() {
     var seq = [];
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
@@ -192,7 +222,7 @@
         if (!p) return NodeFilter.FILTER_REJECT;
         var tag = p.tagName;
         if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
-        if (p.closest && p.closest('pre, code, .ann-hl, .ann-note, .ann-ul, .rr-u, .rr-ui, .rr-sticky')) return NodeFilter.FILTER_REJECT;
+        if (p.closest && p.closest('pre, code, .ann-hl, .ann-note, .ann-ul, .rr-u, .rr-nref, .rr-ui, .rr-sticky')) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       }
     });
@@ -218,8 +248,7 @@
     return out;
   }
 
-  function wrapRange(node, start, end, ann) {
-    if (!node || start >= end) return null;
+  function wrapRange(node, start, end, ann) {    if (!node || start >= end) return null;
     var len = (node.nodeValue != null) ? node.nodeValue.length : -1;
     if (len < 0 || start < 0 || end > len) return null;
     var range = document.createRange();
@@ -253,20 +282,53 @@
     return span;
   }
 
+  /* Re-anchor a mark via its stored context: the 24 chars saved on each
+   * side at save time pin the passage back down. Preferred over the bare
+   * occ index whenever the context matches exactly once — immune to occ
+   * shifts from index changes (e.g. marks saved before sidenote numbers
+   * were excluded from the index). Falls back to occ when ambiguous. */
+  function reanchorAll(text, nq, ctx) {
+    var out = [];
+    try {
+      var pre = (ctx && ctx.pre) || '', post = (ctx && ctx.post) || '';
+      if (!pre && !post) return out;
+      var combo = pre + nq + post, i = text.indexOf(combo);
+      while (i !== -1) { out.push(i + pre.length); i = text.indexOf(combo, i + 1); }
+    } catch (e) {}
+    return out;
+  }
+
   function applyAnn(seq, text, ann) {
-    var nq = norm(ann.q);
+    var nq = ann.nq || norm(ann.q);
     if (!nq) return 0;
-    var occs = occurrences(text, nq);
-    if (!occs.length) return 0;
-    var targets = (ann.occ == null) ? occs.map(function (_, k) { return k; }) : [ann.occ];
-    // Reverse order: wrapping a range splits its text nodes, which would
-    // invalidate the (node, offset) references of ranges before it.
-    // Wrapping back-to-front keeps every earlier reference intact.
-    targets.sort(function (a, b) { return (b || 0) - (a || 0); });
+    var starts = [];
+    var occMatches = occurrences(text, nq);
+    if (ann.ctx && (ann.ctx.pre || ann.ctx.post)) {
+      var ris = reanchorAll(text, nq, ann.ctx);
+      if (ris.length === 1) starts.push(ris[0]);
+    }
+    if (!starts.length && occMatches.length) {
+      var targets = (ann.occ == null) ? occMatches.map(function (_, k) { return k; }) : [ann.occ];
+      // Reverse order: wrapping a range splits its text nodes, which would
+      // invalidate the (node, offset) references of ranges before it.
+      // Wrapping back-to-front keeps every earlier reference intact.
+      targets.sort(function (a, b) { return (b || 0) - (a || 0); });
+      targets.forEach(function (k) {
+        if (k == null || k >= occMatches.length) return;
+        starts.push(occMatches[k]);
+      });
+      // last surviving match: the stored occurrence is gone (edited text)
+      // but exactly one verbatim copy remains — take it, don't orphan.
+      if (!starts.length && occMatches.length === 1) starts.push(occMatches[0]);
+    }
+    if (!starts.length) {
+      try { console.warn('[rr-annotate] no match for saved mark:', String(ann.q || '').slice(0, 80)); } catch (e) {}
+      return 0;
+    }
     var applied = 0, skipped = 0;
-    targets.forEach(function (k) {
-      if (k == null || k >= occs.length) return;
-      var slice = seq.slice(occs[k], occs[k] + nq.length);
+    starts.sort(function (a, b) { return b - a; });
+    starts.forEach(function (st) {
+      var slice = seq.slice(st, st + nq.length);
       var groups = [], cur = null;
       slice.forEach(function (s) {
         if (!cur || cur.node !== s.node || s.off !== cur.end) {
@@ -299,11 +361,45 @@
     });
   }
 
-  function applyAll() {
+  var unplacedUids = [];
+  /* DOM surgery (wrap/unwrap marks, sidenote refs) under a LIVE selection
+   * makes mobile browsers balloon the range — reported as "selecting past
+   * two lines selects everything below". Triggers: renderStickies on every
+   * mobile resize (Safari fires those on scroll), sync's live-reapply
+   * landing mid-drag, font/load re-renders. So any re-render waits for the
+   * selection to collapse (or 10s, whichever first). Save paths already
+   * clear the selection before applying, so they still run synchronously. */
+  var __deferredFn = null, __deferredTimer = null, __deferredTries = 0;
+  function calmApply(fn) {
+    if (!selectionLive()) { fn(); return; }
+    __deferredFn = fn;
+    if (__deferredTimer) return;
+    __deferredTries = 0;
+    __deferredTimer = setInterval(function () {
+      if (!selectionLive() || ++__deferredTries > 40) {
+        clearInterval(__deferredTimer);
+        __deferredTimer = null;
+        var f = __deferredFn;
+        __deferredFn = null;
+        if (f) f();
+      }
+    }, 250);
+  }
+  function applyAll() { calmApply(applyAllInner); }
+  function applyAllInner() {
     clearUserMarks();
+    unplacedUids = [];
     var seq = indexDoc();
     var text = seq.map(function (s) { return s.ch; }).join('');
-    userMarks().concat(importMarks()).forEach(function (a) { applyAnn(seq, text, a); });
+    userMarks().concat(importMarks()).forEach(function (a) {
+      if (applyAnn(seq, text, a)) return;
+      // Wrapping an earlier mark splits shared text nodes, leaving later
+      // marks pointing at detached nodes. Re-index once against the live
+      // DOM and retry before declaring the mark unplaceable.
+      seq = indexDoc();
+      text = seq.map(function (s) { return s.ch; }).join('');
+      if (!applyAnn(seq, text, a)) unplacedUids.push(a.uid);
+    });
     bindMarkClicks();
     renderStickies();
     refreshDrawer();
@@ -333,9 +429,13 @@
     tb.className = 'rr-ui';
     tb.setAttribute('role', 'toolbar');
     tb.setAttribute('aria-label', 'Mark the selected text');
-    // Three zones read left to right: mark it, ink it, write on it. Tapping a
-    // swatch highlights instantly in that color. Underline is one tap, red.
+    // Four zones read left to right: copy it, mark it, ink it, write on
+    // it. Copy comes first (iOS order) so suppressing the duplicate
+    // native menu never steals Copy. Tapping a swatch highlights instantly
+    // in that color. Underline is one tap, red.
     tb.innerHTML =
+      '<button id="rr-tb-copy" title="Copy the selected text" aria-label="Copy the selected text">Copy</button>' +
+      '<span class="rr-div" aria-hidden="true"></span>' +
       '<button class="rr-underline" data-rr-style="underline" title="Underline in red" aria-label="Underline in red">' +
         '<span class="rr-rule" aria-hidden="true"></span><span>Underline</span></button>' +
       '<span class="rr-div" aria-hidden="true"></span>' +
@@ -358,6 +458,8 @@
     // selection; on touch it is a compat event from a tap and must not
     // disturb the tap -> click chain, so it is skipped after any touch.
     function noBlur(e) { if (!isCompatMouse()) e.preventDefault(); }
+    document.getElementById('rr-tb-copy').addEventListener('mousedown', noBlur);
+    document.getElementById('rr-tb-copy').addEventListener('click', function () { copyPending(); });
     tb.querySelector('[data-rr-style]').addEventListener('mousedown', function (e) {
       noBlur(e);
       if (isCompatMouse()) return;
@@ -425,6 +527,7 @@
     hideUnmark();
     closeComposer();
     var tb = ensureToolbar();
+    var wasHidden = !tb.style.display || tb.style.display === 'none';
     tb.style.display = 'flex';
     var eb = document.getElementById('rr-tb-err');
     if (eb) eb.textContent = '';
@@ -439,6 +542,12 @@
     var tw = tb.offsetWidth || 300, th = tb.offsetHeight || 38;
     lastRect = rect;
     placeToolbar(rect, tw, th);
+    if (wasHidden) {
+      // iOS-style pop, only on appearance (not while dragging handles)
+      tb.classList.remove('rr-show');
+      void tb.offsetWidth;
+      tb.classList.add('rr-show');
+    }
   }
   function placeToolbar(rect, tw, th) {
     var tb = ensureToolbar();
@@ -450,6 +559,17 @@
     y = Math.min(Math.max(8, y), Math.max(8, window.innerHeight - th - 8));
     tb.style.left = x + 'px';
     tb.style.top = y + 'px';
+    // arrow direction + anchor: rr-above puts the arrow at the pill's
+    // bottom edge pointing down at the selection, rr-below the reverse.
+    var above = (y + th <= rect.top + 2);
+    tb.classList.remove('rr-above');
+    tb.classList.remove('rr-below');
+    tb.classList.add(above ? 'rr-above' : 'rr-below');
+    var ax = Math.min(Math.max(16, rect.left + rect.width / 2 - x), Math.max(16, tw - 16));
+    try {
+      if (tb.style.setProperty) tb.style.setProperty('--rr-ax', ax + 'px');
+      else tb.style['--rr-ax'] = ax + 'px';
+    } catch (e) {}
   }
 
   /* Touch support: mouseup alone never fires for long-press + handle-drag
@@ -537,8 +657,64 @@
     if (e.target.closest && e.target.closest('.rr-ui')) return;
     hideToolbar();
   });
+  /* Native menu suppression (Android parity): a long-press in Chrome
+   * raises `contextmenu`, stacking the system Copy/Share bar next to our
+   * pill. Preventing it — scoped to prose only — leaves selection and the
+   * OS handles alive while our iOS-style menu stands alone.
+   * Deliberately NOT applied on iOS: -webkit-touch-callout suppression is
+   * partial there and risks breaking long-press selection itself, so the
+   * system menu coexists (our pill is placed to avoid it). Desktop needs
+   * nothing: right-click is orthogonal to the drag-select flow. */
+  document.addEventListener('contextmenu', function (e) {
+    try {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      // editable fields keep their paste menu; chrome keeps its behavior
+      if (t.closest('textarea, input, [contenteditable]')) return;
+      if (t.closest('#rr-toolbar, #rr-popup, #rr-drawer, .rr-ui')) return;
+      if (t.closest('a, button')) return;
+      if (!t.closest('.reader-content, #epub-content')) return;
+      e.preventDefault();
+    } catch (err) {}
+  });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { hideToolbar(); hidePopup(); } });
 
+  /* Copy the pending selection (the native menu is suppressed on some
+   * platforms, so the pill must own Copy or it is lost). Clipboard API
+   * first, hidden-textarea fallback, visible error otherwise. */
+  function copyPending() {
+    var q = pending && pending.quote ? String(pending.quote).replace(/\s+/g, ' ').trim() : '';
+    if (!q) return;
+    function done(ok) {
+      if (ok) {
+        var b = document.getElementById('rr-tb-copy');
+        if (b) {
+          var orig = b.textContent;
+          b.textContent = 'Copied';
+          setTimeout(function () { try { b.textContent = orig; } catch (e) {} }, 1200);
+        }
+      } else {
+        toolbarError('copy failed in this browser');
+      }
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(q).then(function () { done(true); }, function () { done(false); });
+        return;
+      }
+    } catch (e) { /* fall through to legacy path */ }
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = q;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      if (ta.select) ta.select();
+      var ok = document.execCommand ? document.execCommand('copy') : false;
+      if (ta.parentNode) ta.parentNode.removeChild(ta);
+      done(!!ok);
+    } catch (e2) { done(false); }
+  }
   function savePending(withNoteUI) {
     try {
       savePendingInner(withNoteUI);
@@ -546,18 +722,40 @@
       toolbarError('could not save (' + ((err && err.message) || err) + ')');
     }
   }
-  function savePendingInner(withNoteUI) {
-    if (!pending || !pending.range) return;
-    var range = pending.range, quote = pending.quote;
-    if (!norm(quote)) return;
-    var seq = indexDoc();
-    var text = seq.map(function (s) { return s.ch; }).join('');
-    var nq = norm(quote);
-    var occs = occurrences(text, nq);
-    var occ = 0;
+  /* Map a live Range into the normalized index, so the stored quote is
+   * guaranteed to re-match on reload. range.toString() and the index
+   * disagree at block boundaries (a paragraph break is one space in the
+   * index but nothing in toString), so cross-block selections saved from
+   * toString could never be found again. Null when unmappable. */
+  function seqRangeQuote(seq, range) {
+    try {
+      var sc = range.startContainer, so = range.startOffset;
+      var ec = range.endContainer, eo = range.endOffset;
+      var si = -1, ei = -1, i, s;
+      if (sc && sc.nodeType === 3) {
+        for (i = 0; i < seq.length; i++) {
+          s = seq[i];
+          if (s.node === sc && s.off >= so) { si = i; break; }
+        }
+      }
+      if (ec && ec.nodeType === 3) {
+        for (i = seq.length - 1; i >= 0; i--) {
+          s = seq[i];
+          if (s.node === ec && s.off < eo) { ei = i; break; }
+        }
+      }
+      if (si < 0 || ei < 0 || ei < si) return null;
+      var nq = seq.slice(si, ei + 1).map(function (x) { return x.ch; }).join('');
+      if (!nq || !nq.trim()) return null;
+      return { start: si, end: ei, nq: nq };
+    } catch (e) { return null; }
+  }
+  function pickOcc(seq, text, nq, range) {
+    var occs = occurrences(text, nq), occ = 0;
     if (occs.length > 1) {
       for (var k = 0; k < occs.length; k++) {
         var s0 = seq[occs[k]], s1 = seq[occs[k] + nq.length - 1];
+        if (!s0 || !s1) continue;
         try {
           var cand = document.createRange();
           cand.setStart(s0.node, s0.off); cand.setEnd(s1.node, s1.off + 1);
@@ -566,9 +764,35 @@
         } catch (e) {}
       }
     }
+    return { occs: occs, occ: occ };
+  }
+  function savePendingInner(withNoteUI) {
+    if (!pending || !pending.range) return;
+    var range = pending.range, quote = pending.quote;
+    if (!norm(quote)) return;
+    var seq = indexDoc();
+    var text = seq.map(function (s) { return s.ch; }).join('');
+    var nq = norm(quote), occ = 0, ctx = null;
+    var mapped = seqRangeQuote(seq, range);
+    if (mapped && occurrences(text, mapped.nq).length) {
+      nq = mapped.nq;
+      occ = pickOcc(seq, text, nq, range).occ;
+      ctx = {
+        pre: text.slice(Math.max(0, mapped.start - 24), mapped.start),
+        post: text.slice(mapped.end + 1, mapped.end + 25)
+      };
+    } else {
+      var fb = pickOcc(seq, text, nq, range);
+      if (!fb.occs.length) {
+        toolbarError('could not anchor this selection — try a shorter passage');
+        return;
+      }
+      occ = fb.occ;
+    }
     var ann = {
       uid: 'u-' + Date.now().toString(36), q: quote.replace(/\s+/g, ' ').trim(),
-      occ: occ, color: pendingColor, style: pendingStyle,
+      nq: nq, occ: occ, ctx: ctx,
+      color: pendingColor, style: pendingStyle,
       note: pendingNoteText || '', ts: Date.now(), mine: true
     };
     var list = userMarks();
@@ -897,11 +1121,12 @@
     var baked = bakedMarks(), mine = userMarks(), imp = importMarks();
     n.textContent = '(' + (baked.length + mine.length + imp.length) + ')';
     function row(a) {
-      return '<div class="rr-row" data-rr-uid="' + esc(a.uid) + '">' +
+      var orphan = unplacedUids.indexOf(a.uid) !== -1;
+      return '<div class="rr-row' + (orphan ? ' rr-orphan' : '') + '" data-rr-uid="' + esc(a.uid) + '">' +
         '<span class="rr-dot" style="background:' + esc(a.color || '#FFE066') + '"></span>' +
-        '<span class="rr-row-q">' + esc(String(a.q || '').slice(0, 120)) + '</span>' +
-        (a.note ? '<span class="rr-row-n">✎</span>' : '') +
-        '<button class="rr-row-x" title="remove this annotation">✕</button></div>';
+        '<span class="rr-row-q">' + (orphan ? '\u26a0 ' : '') + esc(String(a.q || '').slice(0, 120)) + '</span>' +
+        (a.note ? '<span class="rr-row-n">\u270E</span>' : '') +
+        '<button class="rr-row-x" title="remove this annotation">\u2715</button></div>';
     }
     list.innerHTML =
       mine.map(function (a) { return row(a); }).join('') +
@@ -1075,18 +1300,25 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else { init(); }
+  /* Live re-render hook for sync.js: re-apply all marks from storage
+   * without reloading (no scroll jump). Idempotent: unwrap + re-wrap,
+   * rebind clicks, re-render stickies and drawer. */
+  try {
+    window.__rrAnnotate = window.__rrAnnotate || {};
+    window.__rrAnnotate.reapply = applyAll;
+  } catch (e) {}
   function init() {
     ensureChrome();
     applyAll();
     var rsT = null;
     window.addEventListener('resize', function () {
       clearTimeout(rsT);
-      rsT = setTimeout(function () { renderStickies(); }, 250);
+      rsT = setTimeout(function () { calmApply(renderStickies); }, 250);
     });
-    window.addEventListener('load', function () { renderStickies(); });
+    window.addEventListener('load', function () { calmApply(renderStickies); });
     try {
       if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function () { renderStickies(); });
+        document.fonts.ready.then(function () { calmApply(renderStickies); });
       }
     } catch (e) {}
   }
