@@ -13,6 +13,7 @@
   'use strict';
 
   var LS_ON = 'rr-sync-on';
+  var LS_TS = 'rr-sync-ts';
   var LIST_PREFIXES = ['rr:', 'rr-import:'];
 
   /* ---- placeholder guard ------------------------------------------- */
@@ -79,6 +80,7 @@
   var FS_URL = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
   var APP_URL = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
   var db = null, booted = null, enabled = false, lastSync = 0, pushTimer = null;
+  var lastError = '';
 
   function loadScript(src) {
     return new Promise(function (res, rej) {
@@ -148,10 +150,15 @@
     return boot()
       .then(pullAll)
       .then(pushAll)
-      .then(function () { lastSync = Date.now(); return 'ok'; })
+      .then(function () {
+        lastSync = Date.now(); lastError = '';
+        try { localStorage.setItem(LS_TS, String(lastSync)); } catch (e) {}
+        return 'ok';
+      })
       .catch(function (e) {
-        if (window.console) console.warn('[rr-sync] sync failed', e);
-        return 'error';
+        lastError = (e && (e.code || e.name)) ? (e.code || e.name) : 'error';
+        if (window.console) console.warn('[rr-sync] sync failed', lastError, e);
+        return 'error:' + lastError;
       });
   }
 
@@ -167,6 +174,7 @@
     status: function () {
       if (!enabled) return 'off';
       if (!lastSync) return 'firebase sync on, not synced yet';
+      if (lastError) return 'firebase sync on, last attempt failed (' + lastError + ')';
       var mins = Math.max(0, Math.round((Date.now() - lastSync) / 60000));
       return 'firebase sync on, synced ' + (mins < 1 ? 'just now' : mins + ' min ago');
     },
@@ -179,6 +187,7 @@
   };
 
   enabled = on();
+  try { lastSync = parseInt(localStorage.getItem(LS_TS) || '0', 10) || 0; } catch (e) {}
 
   document.addEventListener('rr-marks-changed', function () {
     if (enabled) schedulePush();
