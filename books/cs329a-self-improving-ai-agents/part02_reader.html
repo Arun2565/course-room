@@ -444,17 +444,6 @@
 <a class="toc-heading toc-sub" href="#archon-inference-architecture-search">Archon: inference architecture search</a>
 </div>
 </div>
-<div class="toc-chapter-wrap" data-chapter="2">
-<a href="part03_reader.html" class="toc-chapter" onclick="navigateToChapter('part03_reader.html')"><span>Part 3 — Robust Verification</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
-<div class="toc-subs" id="subs-2" style="display:none">
-<a class="toc-heading toc-sub" href="part03_reader.html#welcome-the-verification-story">Welcome: the verification story</a>
-<a class="toc-heading toc-sub" href="part03_reader.html#paper-1-training-verifiers-that-judge-solutions">Paper 1: training verifiers that judge solutions</a>
-<a class="toc-heading toc-sub" href="part03_reader.html#paper-2-let-s-verify-step-by-step-prm-vs-orm">Paper 2: Let&#x27;s Verify Step by Step (PRM vs ORM)</a>
-<a class="toc-heading toc-sub" href="part03_reader.html#paper-3-math-shepherd-without-human-labels">Paper 3: Math-Shepherd without human labels</a>
-<a class="toc-heading toc-sub" href="part03_reader.html#paper-4-weak-verifiers-weaver">Paper 4: weak verifiers &amp; Weaver</a>
-<a class="toc-heading toc-sub" href="part03_reader.html#recap-what-s-next">Recap &amp; what&#x27;s next</a>
-</div>
-</div>
 </nav>
   </div>
 
@@ -462,7 +451,7 @@
     <button onclick="toggleTOC()" title="Table of Contents">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
-    <span class="top-bar-title">Part 2 — Test-Time Compute Scaling</span>
+    <span class="top-bar-title">Part 1 — Course Overview</span>
     <button onclick="toggleSettings()" title="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
@@ -632,15 +621,24 @@
 <p>And what was interesting here is that while using just the open source models, we could match or exceed these closed source models at the time, the frontier closed source model at the time, by a large margin across many of these tasks in terms of paths at one. Here&#x27;s the average path at one improvement. And not only that, we could train Archon to be task specific. So when we are doing the Bayesian optimization, we only look into a certain task and we test on that, or we could train Archon to be general purpose. So we wanted it to do better good across many-to do well across many tasks.</p>
 <p>And even that the general purpose one does really, really well and better than the frontier models across these tasks. And that was a very interesting observation that you can design these inference time architectures that do well beyond the task or the limited tasks that they&#x27;re trained on. So on average, in this case, we were outperforming GPT-4.0 or Claude 3.5 Sonnet in passage one by an average of 14.1% across these instruction following reasoning and math encoding problems. Here are some questions, that I want you to think about.</p>
 <p>But since we&#x27;re out of time. Hopefully, you think about it yourself. And hope you have a happy weekend.</p>
-  </main>
+  
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2407.21787" target="_blank" rel="noopener">Large Language Monkeys (Brown et al. 2024)</a></li>
+<li><a href="https://www.arxiv.org/abs/2409.15254" target="_blank" rel="noopener">Archon (Saad-Falcon et al. 2024)</a></li>
+<li><a href="https://arxiv.org/abs/2408.03314" target="_blank" rel="noopener">Scaling LLM Test-Time Compute Optimally (Snell et al. 2024)</a></li>
+<li><a href="https://arxiv.org/abs/2502.17578" target="_blank" rel="noopener">How Do Large Language Monkeys Get Their Power (Laws)?</a></li>
+</ul>
+
+</main>
 
   <footer class="bottom-bar">
-    <span id="pageInfo">Part 2</span>
+    <span id="pageInfo">Part 1</span>
     <span id="progressPercent">0%</span>
   </footer>
 
   <footer class="footer">
-    Converted from lecture video • Generated 2026-10-15 14:53
+    Converted from lecture video • Generated 2026-10-14 07:03
   </footer>
 
   <script>
@@ -683,7 +681,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="../../assets/annotate.css?v=16">
 <script type="application/json" id="rr-notes">{}</script>
-<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="cs329a-self-improving-ai-agents" data-rr-page="part02_reader.html" data-rr-prefix="../../"></script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="cs329a-self-improving-ai-agents" data-rr-page="part01_reader.html" data-rr-prefix="../../"></script>
 <script src="../../assets/chapter-toc.js?v=16"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
