@@ -1,0 +1,79 @@
+/* rr-share.css — the "take these with you" panel.
+ *
+ * Sits at the bottom of the marks drawer on a phone: big tap targets,
+ * a clear scope switch, and one line of feedback. */
+
+.rr-share-foot {
+  flex: none;
+  border-top: 1px solid var(--rr-border);
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: var(--rr-surface);
+  font-size: 0.82rem;
+}
+.rr-share-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rr-ink2);
+  margin-bottom: 10px;
+}
+.rr-share-scope {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.rr-share-scope label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--rr-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rr-share-scope input {
+  accent-color: var(--rr-accent);
+  margin: 0;
+  width: 14px;
+  height: 14px;
+}
+.rr-share-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rr-share-actions button {
+  flex: 1 1 auto;
+  min-height: 38px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid var(--rr-border);
+  background: transparent;
+  color: var(--rr-ink);
+  border-radius: 5px;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.rr-share-actions button:hover {
+  border-color: var(--rr-accent);
+  color: var(--rr-accent);
+}
+#rr-share-sys {
+  border-color: var(--rr-accent);
+  color: var(--rr-accent);
+}
+.rr-share-status {
+  margin-top: 8px;
+  min-height: 1em;
+  font-size: 0.74rem;
+  color: var(--rr-ink2);
+}
+
+@media (max-width: 700px) {
+  .rr-share-actions button {
+    flex: 1 1 46%;
+    min-height: 44px;
+  }
+}

@@ -6,6 +6,23 @@
 
   var LIB_KEY = 'rr-epub-lib';
   var DB_NAME = 'rr-epub-db', DB_STORE = 'files';
+  var ASSET_V = '18';   // keep in step with ASSET_V in tools/assemble.py
+
+  /* Book id as the rest of the site sees it: marks, progress and the
+   * Firestore document all key off "epub-<id>" plus the chapter file name,
+   * which is exactly what the hub needs to list this book on the shelf. */
+  function bookId() { return BOOK ? 'epub-' + BOOK.id : ''; }
+  function progKey(page) { return 'rr-progress:' + bookId() + ':' + page; }
+  function saveProgress(page, pct) {
+    try {
+      var k = progKey(page);
+      var prev = parseInt(localStorage.getItem(k) || '0', 10) || 0;
+      if (Math.round(pct) > prev) {
+        localStorage.setItem(k, String(Math.round(pct)));
+        if (BOOK && page === BOOK.page) paintProgress();
+      }
+    } catch (e) {}
+  }
 
   function $(id) { return document.getElementById(id); }
   function esc(s) {
@@ -195,6 +212,14 @@
       if (m && m.href) spine.push(m.href);
     });
     if (!spine.length) throw new Error('Empty spine — nothing to read.');
+    /* Machine files ride along in the spine of ebooklib output. They are not
+     * chapters, and leaving them in makes the shelf count them and drags the
+     * progress average down (a title page read to the end read as 31%). */
+    var content = spine.filter(function (sp) {
+      var base = String(sp).split('/').pop().toLowerCase();
+      return !/^(nav|toc|contents|cover)[-_a-z0-9]*\.x?html?$/.test(base);
+    });
+    if (content.length) spine = content;
 
     var toc = [];
     var ncxId = Object.keys(manifest).find(function (k) { return /ncx|dtbncx/i.test(manifest[k].type); });
@@ -417,7 +442,10 @@
         if (spOpen && !sp.contains(e.target)) hideSettings();
       });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hidePopups(); });
-      window.addEventListener('scroll', function () { hidePopups(); }, true);
+      window.addEventListener('scroll', function () {
+        hidePopups();
+        noteProgress();
+      }, true);
     }
   }
 
@@ -446,6 +474,12 @@
       return entries[k].spine;
     }
     return entries.length ? entries[0].spine : 0;
+  }
+  function validStart(chapIdx) {
+    var P = BOOK && BOOK.parsed;
+    if (!P) return 0;
+    if (chapIdx && P.spine[chapIdx] && !isNavSpine(P, chapIdx)) return chapIdx;
+    return firstContentSpine(P);
   }
   function isNavSpine(P, idx) {
     var sp = P.spine[idx] || '';
@@ -637,9 +671,16 @@
     buildContentsCard(entries[pos].spine);
 
     var meta = libGet().find(function (m) { return m.id === BOOK.id; });
-    if (meta) { meta.current = spineIdx; libSet(libGet().map(function (m) { return m.id === meta.id ? meta : m; })); }
+    if (meta) {
+      meta.current = spineIdx;
+      meta.page = BOOK.page;   /* resume by name: indices move if the spine does */
+      libSet(libGet().map(function (m) { return m.id === meta.id ? meta : m; }));
+    }
 
-    injectAnnotate(path.split('/').pop());
+    BOOK.page = path.split('/').pop();
+    injectAnnotate(BOOK.page);
+    noteProgress();
+    paintProgress();
   }
 
   /* ---------- tiny syntax highlighter (no deps, theme-aware via CSS) ---------- */
@@ -796,12 +837,26 @@
     spyUpdate();
   }
 
+  var progTimer = null;
+  function noteProgress() {
+    if (!BOOK || !BOOK.page) return;
+    if (progTimer) return;
+    progTimer = setTimeout(function () {
+      progTimer = null;
+      var host = $('epub-content');
+      if (!host || !host.scrollHeight) return;
+      var top = host.getBoundingClientRect().top;
+      var seen = Math.min(host.scrollHeight, Math.max(0, -top + window.innerHeight * 0.9));
+      saveProgress(BOOK.page, (seen / host.scrollHeight) * 100);
+    }, 700);
+  }
+
   function injectAnnotate(pageId) {
     var old = $('rr-epub-annotate');
     if (old) old.remove();
     var s = document.createElement('script');
     s.id = 'rr-epub-annotate';
-    s.src = 'assets/annotate.js?v=6';
+    s.src = 'assets/annotate.js?v=' + ASSET_V;
     s.setAttribute('data-rr-book', 'epub-' + BOOK.id);
     s.setAttribute('data-rr-page', pageId);
     s.setAttribute('data-rr-prefix', './');
@@ -886,7 +941,13 @@
       try { await idbPut(id, buf); }
       catch (e) { err('Could not store the file — browser storage is unavailable or full.'); return; }
       var lib = libGet();
-      lib.unshift({ id: id, title: parsed.title, creator: parsed.creator, file: name, chapters: parsed.spine.length, added: Date.now(), current: 0 });
+      lib.unshift({
+        id: id, title: parsed.title, creator: parsed.creator, file: name,
+        chapters: parsed.spine.length, added: Date.now(), current: 0,
+        /* spine file names in reading order: the hub turns these into the
+         * data-chapters list, and this reader maps them back to a spine index */
+        pages: parsed.spine.map(function (sp) { return String(sp).split('/').pop(); })
+      });
       libSet(lib);
       setHash(id, 0);
       location.reload();
@@ -922,18 +983,85 @@
     // The hash chapter may name the machine TOC (nav.xhtml sits at spine[0]
     // in ebooklib output) or predate the book's entries: resolve to the
     // first readable content instead of ever painting nav.
+    var pages = parsed.spine.map(function (sp) { return String(sp).split('/').pop(); });
+    if ((meta.pages || []).join(',') !== pages.join(',')) {
+      /* the chapter list the shelf shows should match the file we just read */
+      meta.pages = pages;
+      meta.chapters = pages.length;
+      libSet(libGet().map(function (m) { return m.id === meta.id ? meta : m; }));
+    }
     var want = chapIdx || 0;
-    var valid = chapterEntries(parsed).some(function (e) { return e.spine === want; });
-    await renderChapter((valid && !isNavSpine(parsed, want)) ? want : firstContentSpine(parsed));
+    var byName = meta.page ? pages.indexOf(meta.page) : -1;
+    if (chapIdx && chapterEntries(parsed).some(function (e) { return e.spine === chapIdx; }) && !isNavSpine(parsed, chapIdx)) {
+      want = chapIdx;
+    } else if (byName >= 0 && !isNavSpine(parsed, byName)) {
+      want = byName;                       /* hash wins, then last chapter read */
+    } else {
+      want = validStart(chapIdx);
+    }
+    await renderChapter(want);
+  }
+
+  /* ---------- the file picker ---------- */
+  var pickerOpened = false;
+  function openPicker() {
+    if (pickerOpened) return;          /* one dialog per visit, never two */
+    var fi = $('epub-file');
+    if (!fi) { showLibrary(); return; }
+    pickerOpened = true;
+    /* Browsers allow this from a link the reader followed; where they block
+     * it the upload box under the button still works. */
+    try { fi.click(); } catch (e) {}
+    var note = $('epub-pick-note');
+    if (note) note.style.display = 'block';
+  }
+
+  /* ---------- theme toggle, shared with the rest of the site ---------- */
+  function isDark() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+  function paintThemeBtn() {
+    var b = $('epub-theme-btn');
+    if (b) { b.textContent = isDark() ? '\u2600' : '\u263D'; b.setAttribute('aria-label', isDark() ? 'Switch to light' : 'Switch to dark'); }
+  }
+  function wireTheme() {
+    paintThemeBtn();
+    var b = $('epub-theme-btn');
+    if (!b) return;
+    b.addEventListener('click', function () {
+      var was = isDark();
+      if (was) document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', 'dark');
+      try { localStorage.setItem('rr-theme', was ? 'light' : 'dark'); } catch (e) {}
+      paintThemeBtn();
+    });
+  }
+
+  /* ---------- progress bar, book-wide ---------- */
+  function paintProgress() {
+    var bar = $('epub-progress');
+    if (!bar || !BOOK || !BOOK.meta || !BOOK.meta.pages || !BOOK.meta.pages.length) return;
+    var sum = 0;
+    BOOK.meta.pages.forEach(function (f) { sum += depthOf(BOOK.page, f); });
+    bar.style.width = Math.round(sum / BOOK.meta.pages.length) + '%';
+  }
+  function depthOf(currentPage, file) {
+    try {
+      return Math.min(100, parseInt(localStorage.getItem('rr-progress:' + bookId() + ':' + file) || '0', 10) || 0);
+    } catch (e) { return 0; }
   }
 
   /* ---------- boot ---------- */
   function boot() {
     applySettings();
     wireSettings();
+    wireTheme();
     var up = $('epub-upload'), fi = $('epub-file');
     if (up && fi) {
-      up.addEventListener('click', function () { fi.click(); });
+      up.addEventListener('click', function (ev) {
+        /* the input sits inside this box, so its own click bubbles up here;
+         * re-clicking would ask for the file twice */
+        if (ev.target === fi) return;
+        fi.click();
+      });
       fi.addEventListener('change', function () {
         if (fi.files && fi.files[0]) handleFile(fi.files[0]);
         fi.value = '';
@@ -945,6 +1073,11 @@
         err('Could not open that book (' + (e && e.message ? e.message : e) + ')');
         showLibrary();
       });
+    } else if ('pick' in h) {
+      /* "Open an EPUB" on the shelf lands here: go straight to the file
+       * picker instead of making the reader click through a landing page. */
+      showLibrary();
+      openPicker();
     } else {
       showLibrary();
     }

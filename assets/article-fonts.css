@@ -1,0 +1,70 @@
+/* article-fonts: Article Room typography.
+ *
+ * The Aa button in the reader stores the chosen face as rr-font and puts
+ * it on <html> as data-rfont; site.css maps that to --rr-readfont, and
+ * the prose already follows it. The chrome around the prose was pinned
+ * to a mono face by course-theme.css, so the top bar, the section
+ * headings and the contents card ignored the reader's choice.
+ *
+ * These rules put the chrome back under the same variable. They are
+ * scoped to body.article-room (the Article Room's own class) so the
+ * course and book rooms keep their look, and they carry enough
+ * specificity to beat course-theme.css's !important pins.
+ */
+html[data-rfont] body.course-room.article-room .reader-content h1,
+html[data-rfont] body.course-room.article-room .reader-content h2,
+html[data-rfont] body.course-room.article-room .reader-content h3,
+html[data-rfont] body.course-room.article-room .chapter-title h1,
+html:not([data-rfont]) body.course-room.article-room .reader-content h1,
+html:not([data-rfont]) body.course-room.article-room .reader-content h2,
+html:not([data-rfont]) body.course-room.article-room .reader-content h3,
+html:not([data-rfont]) body.course-room.article-room .chapter-title h1 {
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+}
+
+/* the top bar: back link, page title, action buttons */
+html[data-rfont] body.course-room.article-room .rr-back,
+html[data-rfont] body.course-room.article-room .rr-toptitle,
+html[data-rfont] body.course-room.article-room .rr-header-actions button,
+html:not([data-rfont]) body.course-room.article-room .rr-back,
+html:not([data-rfont]) body.course-room.article-room .rr-toptitle,
+html:not([data-rfont]) body.course-room.article-room .rr-header-actions button {
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+}
+body.course-room.article-room .rr-toptitle {
+  font-style: italic !important;
+  letter-spacing: 0 !important;
+}
+
+/* contents panel, in-chapter card and the next-chapter link */
+html[data-rfont] body.course-room.article-room .toc-header h3,
+html[data-rfont] body.course-room.article-room .toc-chapter,
+html[data-rfont] body.course-room.article-room .rr-contents,
+html[data-rfont] body.course-room.article-room .rr-contents a,
+html[data-rfont] body.course-room.article-room .rr-next-link,
+html:not([data-rfont]) body.course-room.article-room .toc-header h3,
+html:not([data-rfont]) body.course-room.article-room .toc-chapter,
+html:not([data-rfont]) body.course-room.article-room .rr-contents,
+html:not([data-rfont]) body.course-room.article-room .rr-contents a,
+html:not([data-rfont]) body.course-room.article-room .rr-next-link {
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+}
+body.course-room.article-room .toc-header h3 {
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+body.course-room.article-room .rr-next-link {
+  font-style: italic !important;
+}
+
+/* the body itself: the course room paints the whole page mono, the
+ * article room reads in the face the reader picked */
+html[data-rfont] body.course-room.article-room,
+html:not([data-rfont]) body.course-room.article-room {
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+}
+
+/* the annotation count chip stays a label, in the small mono face */
+body.course-room.article-room .ann-badge {
+  font-family: 'DM Mono', ui-monospace, monospace !important;
+}

@@ -1,10 +1,11 @@
-/* library.js — Apple Books-style progress on the hub grid.
+/* library.js — Apple Books-style bookshelf on the hub.
  *
- * Each .bk-lib card carries data-book + data-chapters. Per-chapter scroll
+ * Each .bk-spine card carries data-book + data-chapters. Per-chapter scroll
  * depth is stored by chapter-toc.js as rr-progress:<slug>:<file> (0-100).
- * Here we average it into a progress bar + label, and point the card at
- * the first unfinished chapter (Continue where you left off).
- */
+ * Here we average it into a progress bar + label, point the card at
+ * the first unfinished chapter (Continue where you left off), and slide
+ * the card to whichever shelf its progress earns — Read, Reading now or
+ * To be read — then refresh each shelf's count. */
 (function () {
   'use strict';
 
@@ -44,11 +45,21 @@
       else lab.textContent = avg + '% · Continue';
     }
     card.setAttribute('href', 'books/' + slug + '/' + target);
+    /* Cards for books opened in the browser (data-epub) have no static page
+     * to link to: hand the chapter index to the EPUB reader instead. */
+    var epub = card.getAttribute('data-epub');
+    if (epub) {
+      var pages = (card.getAttribute('data-pages') || '').split(',').filter(Boolean);
+      var at = pages.indexOf(target);
+      card.setAttribute('href', 'open-epub.html#b=' + encodeURIComponent(epub) +
+                        '&c=' + (at < 0 ? 0 : at));
+    }
   }
 
   function init() {
     try { if (window.RR && window.RR.touch) window.RR.touch(); } catch (e) {}
-    document.querySelectorAll('.bk-lib').forEach(upgrade);
+    document.querySelectorAll('.bk-spine').forEach(upgrade);
+    reShelve();
     try {
       var pill = document.getElementById('rr-streak');
       if (pill && window.RR && window.RR.streak) {
@@ -61,6 +72,49 @@
     initSearch();
   }
 
+  /* Slide each spine card into the shelf its real progress earns:
+   * finished -> Read, started (0 < p < 100 or any finished chapter in a
+   * multi-chapter book) -> Reading now, untouched -> To be read.
+   * Falls back to the build-time bucket: cards whose shelf section no
+   * longer exists (other hub pages) simply stay where they are. */
+  function desiredStage(card) {
+    var files = (card.getAttribute('data-chapters') || '').split(',').filter(Boolean);
+    var sum = 0, done = 0;
+    for (var i = 0; i < files.length; i++) {
+      var p = Math.min(100, pct(card.getAttribute('data-book'), files[i]));
+      sum += p;
+      if (p >= 90) done++;
+    }
+    var avg = files.length ? sum / files.length : 0;
+    if (files.length && done === files.length) return 'read';
+    if (avg > 0 || done > 0) return 'reading';
+    return 'tbr';
+  }
+  function reShelve() {
+    var stages = ['read', 'reading', 'tbr'];
+    document.querySelectorAll('.bk-spine').forEach(function (card) {
+      var stage = desiredStage(card);
+      var shelf = document.getElementById('shelf-' + stage);
+      if (shelf && shelf !== card.parentNode) shelf.appendChild(card);
+    });
+    stages.forEach(function (stage) {
+      var shelf = document.getElementById('shelf-' + stage);
+      if (!shelf) return;
+      var n = shelf.querySelectorAll('.bk-spine').length;
+      var sec = shelf.closest('.shelf-section');
+      var head = sec && sec.querySelector('.shelf-count');
+      if (head) head.textContent = (n === 1 ? '1 book' : n + ' books');
+      if (sec) {
+        if (n === 0 && !sec.querySelector('.shelf-empty')) {
+          sec.insertAdjacentHTML('beforeend', '<div class="shelf-empty">Nothing here yet.</div>');
+        } else if (n > 0) {
+          var empty = sec.querySelector('.shelf-empty');
+          if (empty) empty.remove();
+        }
+      }
+    });
+  }
+
   /* ---- ⌘K library search: books, guides, blogs ---- */
   function txt(card, sel) {
     var el = card.querySelector(sel);
@@ -68,9 +122,8 @@
   }
   function shelfKind(card) {
     try {
-      var grid = card.closest('.bk-grid, .rail');
-      var head = grid && grid.previousElementSibling;
-      var t = head ? (head.textContent || '') : '';
+      var sec = card.closest('.shelf-section');
+      var t = sec ? (sec.querySelector('.shelf-title') || {}).textContent || '' : '';
       if (/guide/i.test(t)) return 'Guide';
       if (/blog/i.test(t)) return 'Blog';
     } catch (e) {}
@@ -78,7 +131,7 @@
   }
   function collectEntries() {
     var out = [];
-    document.querySelectorAll('.bk-lib').forEach(function (c) {
+    document.querySelectorAll('.bk-spine').forEach(function (c) {
       var a = c.getAttribute('href');
       if (!a) return;
       out.push({ href: a, target: c.getAttribute('target') || '',

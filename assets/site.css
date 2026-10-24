@@ -52,9 +52,11 @@
 }
 
 :root {
-  --bg: #faf7f0;
-  --bg2: #f0ede6;
-  --surface: #f0ede6;
+  /* light mode: the page is pure white. --bg2/--surface stay a hair off it
+     so panels, inputs and cards still read as surfaces. */
+  --bg: #ffffff;
+  --bg2: #f6f6f4;
+  --surface: #ffffff;
   --ink: #000;
   --ink-2: #333;
   --accent: #8a6820;
@@ -314,40 +316,42 @@ body {
 .progress-bar {
   top: auto !important;
   bottom: 0 !important;
-  left: 260px !important;
+  left: var(--rr-rail) !important;
   right: 0 !important;
 }
 
-/* ---- TOC as fixed left sidebar (desktop visible, hamburger toggles) ---- */
-body.epub-page { padding-left: 0 !important; }
-.toc-panel {
-  transform: translateX(0) !important;
-  width: 260px !important;
-}
-body.toc-hidden .toc-panel,
-.toc-panel.rr-hidden {
-  transform: translateX(-100%) !important;
-}
-body {
-  padding-left: 260px;
-}
-body.toc-hidden {
-  padding-left: 0;
-}
-body.toc-hidden .progress-bar {
-  left: 0 !important;
-}
-/* hamburger affordance: highlighted when TOC is closed */
-#rr-toc-btn[aria-expanded="false"] {
-  border-color: var(--accent);
-  color: var(--accent);
+/* ---- Contents rail --------------------------------------------------
+ * The rail is reserved on desktop whether or not the panel is open, so
+ * opening/closing never reflows the text and never moves the reader's
+ * place. The panel simply slides in and out of space that is always
+ * there. Below 900px it becomes a drawer over the text (no padding in
+ * either state, so nothing moves there either).
+ * -------------------------------------------------------------------- */
+:root { --rr-rail: 288px; }
+
+body.epub-page,
+body.epub-page.toc-hidden { padding-left: 0 !important; }
+body.epub-page .progress-bar { left: 0 !important; }
+
+@media (min-width: 901px) {
+  body,
+  body.toc-hidden { padding-left: var(--rr-rail) !important; }
+  .progress-bar,
+  body.toc-hidden .progress-bar { left: var(--rr-rail) !important; }
+  .toc-panel {
+    width: var(--rr-rail) !important;
+    transform: translateX(0) !important;
+  }
+  body.toc-hidden .toc-panel,
+  .toc-panel.rr-hidden { transform: translateX(-100%) !important; }
 }
 
-/* Mobile: slide-out panel */
+/* Mobile: slide-out drawer over the text */
 @media (max-width: 900px) {
-  body { padding-left: 0; }
-  body.toc-hidden { padding-left: 0; }
-  .progress-bar { left: 0 !important; }
+  body,
+  body.toc-hidden { padding-left: 0 !important; }
+  .progress-bar,
+  body.toc-hidden .progress-bar { left: 0 !important; }
   .toc-panel,
   body.toc-hidden .toc-panel {
     transform: translateX(-100%) !important;
@@ -355,6 +359,288 @@ body.toc-hidden .progress-bar {
   .toc-panel.open {
     transform: translateX(0) !important;
   }
+}
+
+/* hamburger affordance: highlighted when TOC is closed */
+#rr-toc-btn[aria-expanded="false"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---- Panel surface ---- */
+.toc-panel {
+  background: var(--surface, var(--bg2, #f6f6f4)) !important;
+  border-right: 1px solid var(--border, rgba(0, 0, 0, 0.07)) !important;
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  box-shadow: 0 0 44px rgba(0, 0, 0, 0.05) !important;
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif);
+}
+
+/* ---- Header ---- */
+.toc-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 20px 18px 14px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.07)) !important;
+  background: transparent !important;
+}
+.toc-header .rr-toc-heading { min-width: 0; }
+.toc-header h3 {
+  font-family: 'DM Mono', ui-monospace, monospace !important;
+  font-size: 0.6rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--text3, #555) !important;
+  margin: 0 0 6px !important;
+}
+.toc-header .rr-toc-book {
+  display: block;
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+  font-size: 1.02rem !important;
+  font-style: italic;
+  line-height: 1.3 !important;
+  color: var(--text, #000) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 500 !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.toc-close {
+  flex: none !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--border2, rgba(0, 0, 0, 0.12)) !important;
+  background: transparent !important;
+  color: var(--text2, #555) !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.toc-close:hover { color: var(--accent) !important; border-color: var(--accent) !important; }
+
+/* ---- Filter ---- */
+.rr-toc-search {
+  padding: 12px 14px 4px;
+}
+.rr-toc-search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border2, rgba(0, 0, 0, 0.12));
+  background: var(--bg2, rgba(0, 0, 0, 0.03));
+  color: var(--text, #000);
+  font: 400 0.82rem/1 var(--rr-readfont, 'Spectral', Georgia, serif);
+}
+.rr-toc-search input::placeholder { color: var(--text3, #777); }
+.rr-toc-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow, rgba(138, 104, 32, 0.08));
+}
+.rr-toc-empty {
+  display: none;
+  padding: 16px 18px;
+  font: 400 0.82rem/1.5 var(--rr-readfont, 'Spectral', Georgia, serif);
+  color: var(--text3, #777);
+}
+
+/* ---- List ---- */
+.toc-nav {
+  padding: 10px 10px 14px !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2, rgba(0, 0, 0, 0.15)) transparent;
+}
+.toc-nav::-webkit-scrollbar { width: 9px; }
+.toc-nav::-webkit-scrollbar-thumb {
+  background: var(--border2, rgba(0, 0, 0, 0.12));
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 9px;
+}
+.toc-chapter-wrap { margin-bottom: 1px; }
+
+/* group headings: front matter / appendices */
+.toc-group {
+  padding: 14px 12px 6px;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text3, #777);
+}
+.toc-group:first-child { padding-top: 4px; }
+/* front matter is listed, not numbered: no badge, quieter weight */
+.toc-chapter-wrap[data-kind="front"] a.toc-chapter {
+  color: var(--text2, #444);
+  font-size: 0.86rem;
+}
+.toc-chapter-wrap[data-kind="front"] a.toc-chapter .rr-toc-title {
+  font-style: italic;
+}
+.rr-toc-num-letter {
+  font-size: 0.68rem !important;
+  letter-spacing: 0;
+}
+
+a.toc-chapter {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  border-left: 2px solid transparent !important;
+  background: transparent !important;
+  color: var(--text, #111) !important;
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+  font-size: 0.9rem !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  text-decoration: none !important;
+  transition: background 0.14s ease, color 0.14s ease, padding-left 0.14s ease;
+}
+a.toc-chapter > .rr-toc-title {
+  flex: 1;
+  min-width: 0;
+  /* two lines beats an ellipsis that hides the chapter's name */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+a.toc-chapter:hover {
+  background: var(--glow, rgba(138, 104, 32, 0.06)) !important;
+  border-left-color: var(--accent) !important;
+  padding-left: 14px !important;
+}
+.rr-toc-num {
+  flex: none;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: var(--text3, #777);
+  min-width: 1.5em;
+}
+.toc-ann-count {
+  flex: none;
+  font-family: 'DM Mono', ui-monospace, monospace !important;
+  font-size: 0.58rem !important;
+  line-height: 1 !important;
+  padding: 3px 6px !important;
+  border-radius: 99px !important;
+  border: 1px solid var(--border2, rgba(0, 0, 0, 0.1)) !important;
+  color: var(--text3, #777) !important;
+  background: transparent !important;
+}
+/* the chapter you are in */
+a.toc-chapter.rr-current {
+  background: var(--glow, rgba(138, 104, 32, 0.07)) !important;
+  border-left-color: var(--accent) !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+a.toc-chapter.rr-current .rr-toc-num { color: var(--accent) !important; }
+/* read somewhere already */
+a.toc-chapter.rr-started .rr-toc-num::after {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 4px;
+  margin-left: 5px;
+  vertical-align: middle;
+  border-radius: 50%;
+  background: var(--accent2, var(--accent));
+  opacity: 0.7;
+}
+.toc-arrow {
+  flex: none;
+  color: var(--text3, #777) !important;
+  font-size: 0.6rem !important;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+.toc-arrow.open { transform: rotate(90deg); color: var(--accent) !important; }
+
+/* sub-headings */
+.toc-subs { border-left: 1px solid var(--border, rgba(0, 0, 0, 0.07)); margin-left: 18px; }
+a.toc-heading {
+  display: block !important;
+  padding: 6px 10px 6px 12px !important;
+  border-radius: 0 7px 7px 0 !important;
+  color: var(--text2, #444) !important;
+  font-family: var(--rr-readfont, 'Spectral', Georgia, serif) !important;
+  font-size: 0.82rem !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  text-decoration: none !important;
+  transition: color 0.14s ease, background 0.14s ease;
+}
+a.toc-sub-sub { padding-left: 24px !important; font-size: 0.78rem !important; opacity: 0.85; }
+a.toc-heading:hover { color: var(--accent) !important; background: var(--glow, rgba(138, 104, 32, 0.05)) !important; }
+a.toc-heading.active {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  background: var(--glow, rgba(138, 104, 32, 0.06)) !important;
+}
+
+/* ---- Footer: how far through the book you are ---- */
+.rr-toc-foot {
+  margin-top: auto;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.07));
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--text3, #777);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+.rr-toc-foot .rr-toc-meter {
+  flex: 1;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--border, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  align-self: center;
+}
+
+/* Second line of the footer: this chapter's read time, time left and the
+   live percentage read, sitting right under the book progress slider. */
+.rr-toc-foot .rr-sb-page {
+  flex: 1 0 100%;
+  order: 9;
+  margin-top: 2px;
+  color: var(--text2, #555);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 320px) {
+  .rr-toc-foot .rr-sb-page { font-size: 0.55rem; }
+}
+.rr-toc-foot .rr-toc-meter i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.3s ease;
 }
 
 /* ---- TOC sub-heading links (rebuilt by assemble.py fix_toc) ---- */
@@ -683,11 +969,19 @@ body[data-rr-wide="1"] #epub-content { max-width: 800px; }
 .rr-seg button:hover { color: var(--accent); }
 .rr-seg button.on { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); }
 /* sidebar states for the epub reader */
-body.epub-page.epub-reading { padding-left: 260px !important; }
-body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
+/* same rule as the books: the rail stays reserved, so closing the EPUB
+   contents drawer cannot shift the text under the reader's eyes */
+body.epub-page.epub-reading,
+body.epub-page.epub-reading.epub-toc-hidden { padding-left: var(--rr-rail) !important; }
 @media (max-width: 900px) {
   body.epub-page.epub-reading { padding-left: 0 !important; }
   #epub-booktitle { font-size: 1.6rem; }
+}
+a.toc-chapter.active {
+  background: var(--glow, rgba(138, 104, 32, 0.07)) !important;
+  border-left-color: var(--accent) !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
 }
 .toc-chapter.active {
   background: var(--glow) !important;
@@ -829,7 +1123,7 @@ body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
   left: 20px;
   bottom: 24px;
   z-index: 150;
-  background: var(--bg2, #f0ede6);
+  background: var(--bg2, #f6f6f4);
   border: 1px solid var(--border2, rgba(0, 0, 0, 0.14));
   color: var(--text2, #333);
   font-family: 'DM Mono', monospace;
@@ -860,7 +1154,7 @@ body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
   align-items: center;
   justify-content: center;
   color: var(--accent, #8a6820);
-  background: var(--bg2, #f0ede6);
+  background: var(--bg2, #f6f6f4);
   border: 1px solid var(--border2, rgba(0, 0, 0, 0.14));
   border-radius: 999px;
   cursor: pointer;
@@ -880,7 +1174,7 @@ body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
 .rr-contents {
   width: auto;
   margin: 0 0 20px;
-  background: var(--bg2, #f0ede6);
+  background: var(--bg2, #f6f6f4);
   border: 1px solid var(--border, rgba(0, 0, 0, 0.07));
   border-radius: 4px;
   padding: 18px 18px 14px;
@@ -943,8 +1237,8 @@ body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
     overflow-y: auto;
     z-index: 5;
   }
-  body.rr-chapter .progress-bar { left: 260px !important; right: 270px !important; }
-  body.rr-chapter.toc-hidden .progress-bar { left: 0 !important; right: 270px !important; }
+  body.rr-chapter .progress-bar,
+  body.rr-chapter.toc-hidden .progress-bar { left: var(--rr-rail) !important; right: 270px !important; }
 }
 .reader-content h2[id], .reader-content h3[id] { scroll-margin-top: 16px; }
 #epub-content h2[id], #epub-content h3[id] { scroll-margin-top: 16px; }
@@ -1015,7 +1309,7 @@ body.epub-page.epub-reading.epub-toc-hidden { padding-left: 0 !important; }
   align-items: center;
   gap: 12px;
   padding: 10px 18px;
-  background: var(--bg, #faf7f0);
+  background: var(--bg, #ffffff);
   border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.07));
 }
 .rr-back {

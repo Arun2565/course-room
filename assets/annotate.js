@@ -14,8 +14,8 @@
   // Underline is always bright red: one tap, no palette step. Highlights
   // get four options — red stays reserved for underlines.
   var UNDERLINE_COLOR = '#FF3B30';
-  var DEFAULT_PALETTE = ['#FFE600', '#FF9E40', '#8AB8FF', '#7AE8A8'];
-  var DEFAULT_NAMES = { '#FFE600': 'yellow', '#FF9E40': 'orange', '#8AB8FF': 'blue', '#7AE8A8': 'green' };
+  var DEFAULT_PALETTE = ['#FFE45C', '#A8E6A3', '#A8D8F0', '#F8B8D0', '#D5B8F8'];
+  var DEFAULT_NAMES = { '#FFE45C': 'yellow', '#A8E6A3': 'green', '#A8D8F0': 'blue', '#F8B8D0': 'pink', '#D5B8F8': 'purple' };
   // Apple Books palette (yellow, green, blue, pink, purple), opt-in per
   // page via data-rr-palette="apple" on the script tag (course-room).
   var APPLE_PALETTE = ['#FFE45E', '#B2E28B', '#A9CDFD', '#FFC2D4', '#D3BDF5'];

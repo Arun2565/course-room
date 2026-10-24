@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecture 1 — Introduction to LLM Evaluations</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=20">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=4">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="lecture01_reader.html" class="toc-chapter" onclick="navigateToChapter('lecture01_reader.html')"><span>Lecture 1 — Introduction to LLM Evaluations</span><span class="toc-ann-count">20</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#why-we-need-llm-evals">Why we need LLM evals</a>
+<a class="toc-heading toc-sub" href="#the-three-properties">The three properties</a>
+<a class="toc-heading toc-sub" href="#systematic-not-casual-checking">Systematic, not casual checking</a>
+<a class="toc-heading toc-sub" href="#repeatable">Repeatable</a>
+<a class="toc-heading toc-sub" href="#clear-criteria">Clear criteria</a>
+<a class="toc-heading toc-sub" href="#evals-are-not-just-metrics">Evals are not just metrics</a>
+<a class="toc-heading toc-sub" href="#what-the-setup-actually-includes">What the setup actually includes</a>
+<a class="toc-heading toc-sub" href="#what-evals-are-for">What evals are for</a>
+<a class="toc-heading toc-sub" href="#model-evals-and-application-evals">Model evals and application evals</a>
+<a class="toc-heading toc-sub" href="#model-evals">Model evals</a>
+<a class="toc-heading toc-sub" href="#what-is-on-those-leaderboards">What is on those leaderboards</a>
+<a class="toc-heading toc-sub" href="#the-eight-capability-categories">The eight capability categories</a>
+<a class="toc-heading toc-sub" href="#some-famous-benchmarks">Some famous benchmarks</a>
+<a class="toc-heading toc-sub" href="#do-you-need-to-do-model-evals">Do you need to do model evals?</a>
+<a class="toc-heading toc-sub" href="#application-evals">Application evals</a>
+<a class="toc-heading toc-sub" href="#the-llm-is-only-one-thing">The LLM is only one thing</a>
+<a class="toc-heading toc-sub" href="#the-smartphone-analogy">The smartphone analogy</a>
+<a class="toc-heading toc-sub" href="#component-level-and-system-level">Component level and system level</a>
+<a class="toc-heading toc-sub" href="#what-application-evals-ask">What application evals ask</a>
+<a class="toc-heading toc-sub" href="#recap">Recap</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Lecture 1 — Introduction to LLM Evaluations</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Lecture 1 — Introduction to LLM Evaluations</h1>
+<span class="ann-badge">📝 20 sections</span>
+</div>
+<h2 id="why-we-need-llm-evals">Why we need LLM evals <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=4" target="_blank" rel="noopener" title="Play from 0:04">▶ 0:04</a></h2>
+<p>Why do we need LLM evaluations, what exactly are they, and how are they different from software testing. Up to this point in the course we have only touched the subject from a distance. Today we read the definition properly and then take it apart.</p>
+<p>LLM evals are defined as systematic tests used to judge an LLM, and which are applied to the LLM itself as well as to the application built on top of it. Three properties matter here, and all three are important.</p>
+<h2 id="the-three-properties">The three properties <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=56" target="_blank" rel="noopener" title="Play from 0:56">▶ 0:56</a></h2>
+<p>First, they are systematic. Second, the tests are repeatable. Third, the tests have very clear criteria. All three are core characteristics of evals. Understand these once and the rest of the course becomes much easier.</p>
+<h2 id="systematic-not-casual-checking">Systematic, not casual checking <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=85" target="_blank" rel="noopener" title="Play from 1:25">▶ 1:25</a></h2>
+<p>Let&#x27;s take the first one. Systematic means that you are not casually testing here. It is not that five questions popped into your head, you asked them, and the answers felt right.</p>
+<p>Instead, what you do is create datasets. You try to cover every kind of edge case in those datasets. So you test your chatbot, or your LLM-based system, the way you would actually test it. If I am building an X chatbot, what I will do is pull out a hundred real chats that happened on my system, build a dataset out of them, and run my testing on that dataset.</p>
+<p>That is the first thing. It is systematic.</p>
+<h2 id="repeatable">Repeatable <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=142" target="_blank" rel="noopener" title="Play from 2:22">▶ 2:22</a></h2>
+<p>Second, it is repeatable. Repeatable means that if tomorrow you change your system, change the model, change the chunking strategy, and change everything else, you can still evaluate your system exactly the way you were evaluating it before.</p>
+<p>This is a very important idea: LLM evals should be repeatable. You should be able to apply the same dataset to any version of the software and extract the results in exactly the same way.</p>
+<p>This matters because it is what lets you compare. You have a test dataset. Version one scored some number on it. Version two scored some number on it. That tells you whether the system is getting better or not. That is what repeatable means.</p>
+<h2 id="clear-criteria">Clear criteria <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=192" target="_blank" rel="noopener" title="Play from 3:12">▶ 3:12</a></h2>
+<p>The thing LLM evals depend on most is what you are going to evaluate on the basis of. Suppose I am building an X chatbot. There will be many criteria I want to evaluate on.</p>
+<p>The first answer should come out. The second should be simple to use. The third should be able to explain, and that explanation should come from our own content. The fourth should be safe. There should be nothing unsafe in it, no abuse, no abusive tone.</p>
+<p>All of that has to hold. So what do you do? You define the criteria for the chatbot. Without you doing that, testing with criteria does not happen and you do not get a proper evaluation.</p>
+<h2 id="evals-are-not-just-metrics">Evals are not just metrics <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=286" target="_blank" rel="noopener" title="Play from 4:46">▶ 4:46</a></h2>
+<p>One thing I want to clear up here, because a lot of people are confused about it, and I was confused too the first time I heard this topic.</p>
+<p>I came from machine learning and deep learning. Over there, evaluation meant metrics. We would say, how do you evaluate a machine learning model? We would talk about accuracy, precision, recall. So in my head, LLM evals were simply a set of numbers on the basis of which we judge performance.</p>
+<p>That is wrong. In the very first lecture I want to tell you this: LLM evals does not mean metrics. It is the entire testing setup. The whole thing you build in order to evaluate an LLM is what we call LLM evals.</p>
+<h2 id="what-the-setup-actually-includes">What the setup actually includes <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=341" target="_blank" rel="noopener" title="Play from 5:41">▶ 5:41</a></h2>
+<p>Suppose you have a RAG chatbot. You want to evaluate the retriever inside it. The retriever is a component, and it has now become part of LLM evals. You are evaluating it on the basis of criteria: what is the retrieval accuracy?</p>
+<p>When you run these tests, offline or in production after deployment, that is also part of the setup. Which tools you use is also part of it. Later we will use RAGAS, because it is an application, so that tool is also part of your evals.</p>
+<p>So whenever anyone asks you what an eval is, the answer is not only metrics. LLM evals means the entire testing setup: what you are testing, on what basis, when you are running the tests, and which tool you are using to run them. All of it together is what we call evals.</p>
+<p>This can feel confusing at this point. But be clear on this: evals is not only metrics. It is the entire testing setup.</p>
+<h2 id="what-evals-are-for">What evals are for <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=436" target="_blank" rel="noopener" title="Play from 7:16">▶ 7:16</a></h2>
+<p>What you get out of an eval is not a metric. What you get out of it is practical questions. What kind of questions? Look at these.</p>
+<p>Which model can be used for a task application? You get the answer to this question when you do evals. Does this system ship to production? You get the answer to this when you evaluate. Did prompt version two improve over prompt version one? You can extract that answer by evaluating. Is the RAG answer, given the retrieved context, correct in completing the task? Is it safe for real users? Is the latency under control?</p>
+<p>You get answers to these kinds of questions when you do evals. That is what LLM evals does.</p>
+<p>I have read a lot of theory so far, and I agree that at this point it does not click. A little later in the course we will revise this whole thing through one full example, and everything will become much easier.</p>
+<h2 id="model-evals-and-application-evals">Model evals and application evals <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=503" target="_blank" rel="noopener" title="Play from 8:23">▶ 8:23</a></h2>
+<p>Before we discuss how LLM evals work, there is one very important point I want to tell you, and it needs to be clear in your head. It will help you a lot later.</p>
+<p>Today, evals are divided into two parts. One we call model evals. The second we call application evals.</p>
+<p>Model evals are the evals with which we evaluate the LLM. Application evals are the evals with which we evaluate the LLM-based application.</p>
+<p>If you go back to the previous slide, the definition there says LLM evals, and both LLM itself and the LLM-based system are written there. That is why, on the basis of this definition, there are two types of LLM evals. One we call model evals, the second we call application evals.</p>
+<p>The job of model evals is simple: to evaluate a given LLM. The job of application evals is to evaluate the entire LLM-based application.</p>
+<p>If this distinction becomes clear in your head right at the start, that is very good.</p>
+<h2 id="model-evals">Model evals <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=597" target="_blank" rel="noopener" title="Play from 9:57">▶ 9:57</a></h2>
+<p>Here I will give you a disclaimer. The terms model evals and application evals are not official terms. I made them up. I created them because I wanted this topic to sit properly in your head.</p>
+<p>So do not quote me tomorrow saying model evals is a term and application evals is a term. In the industry both of them together are called evals, and on the use case people automatically understand whether model evals are being discussed or application evals.</p>
+<p>I am giving you this in advance. Now let us understand both types of evals in a little detail, and see what exactly they do.</p>
+<p>First, model evals. There is a definition written here: model evals evaluate the model itself. It is simple. The job is to evaluate the capabilities of the LLM. The main idea of this kind of eval is to test and benchmark the capabilities of a model.</p>
+<p>All these evals have the same goal. When a new LLM is released, we test what its capabilities are and benchmark it.</p>
+<p>You have probably seen this too. Whenever a new LLM is released, it is said that it came on top of a particular leaderboard, that it achieved such and such accuracy on such and such percentage. You must have noticed this at some point.</p>
+<p>Whenever these new models come, what they always do is quote these leaderboards: on this particular leaderboard or on this particular benchmark, this LLM came out on top.</p>
+<h2 id="what-is-on-those-leaderboards">What is on those leaderboards <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=703" target="_blank" rel="noopener" title="Play from 11:43">▶ 11:43</a></h2>
+<p>What is actually there? There are some evals already built. As soon as an LLM comes to the market, we test that LLM on those evals to find the level, and then we publish it on the internet so that everyone knows what the LLM is capable of.</p>
+<p>The question now is: which types of capabilities can we test? Today&#x27;s evals test roughly eight capabilities.</p>
+<h2 id="the-eight-capability-categories">The eight capability categories <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=727" target="_blank" rel="noopener" title="Play from 12:07">▶ 12:07</a></h2>
+<p>The first capability is reasoning. Can our model reason? Can it solve a problem by thinking through it step by step?</p>
+<p>The second is knowledge. Does our model have basic world knowledge, general knowledge? We talk about a cutoff date. The model should have all the world&#x27;s knowledge up to that cutoff date.</p>
+<p>The third is basic maths. Can our model solve maths problems?</p>
+<p>The fourth capability is coding. Can our LLM code?</p>
+<p>The fifth capability is following instructions. Can our model follow instructions? If I give it ten instructions, will it follow all of them one after another?</p>
+<p>Then comes long handling. Can our LLM pull answers out of large context?</p>
+<p>The seventh is multimodal. Does our LLM have capabilities? Can it understand images, text, sound, or can it produce output?</p>
+<p>And lastly, tool use. Can our model utilise tools properly?</p>
+<p>In today&#x27;s world these eight categories are the basis on which new LLMs are evaluated and documented. All of this is done on that basis.</p>
+<h2 id="some-famous-benchmarks">Some famous benchmarks <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=836" target="_blank" rel="noopener" title="Play from 13:56">▶ 13:56</a></h2>
+<p>Here I have written down some example benchmarks. We will discuss all the benchmarks later. If you want to check general knowledge for some model, the very famous benchmark is MMLU. It asks you questions from many different subjects: science, history, medicine. It asks your LLM those questions, records the answers, and evaluates them.</p>
+<p>For maths, there is GSM8K, which is grade school maths, and it answers on that basis.</p>
+<p>For coding, you have probably heard of it, it is a very famous benchmark, HumanEval. For instruction following, IFEval. For checking long context, InfiniteBench is very famous. For multimodal capabilities, there is MMMU.</p>
+<h2 id="do-you-need-to-do-model-evals">Do you need to do model evals? <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=888" target="_blank" rel="noopener" title="Play from 14:48">▶ 14:48</a></h2>
+<p>If we summarize the discussion so far: evals is divided into two parts, model evals and application evals. Model evals are done to test the capabilities of an LLM. These eight are the ones we have covered just now, and these tests are done with the help of benchmarks. That is our next lecture&#x27;s topic. Over a full lecture I will teach you the most important benchmarks, how they are run on LLMs, how the results come out, the complete workflow.</p>
+<p>So by the next lecture you should have a fairly good idea of model evals.</p>
+<p>But there is one thing I want to say here. If you are going to be an AI engineer, you will not do that much work on model evals. Because think about it: evaluating a newly released LLM, benchmarking it, evaluating it, is not your job. That is the job of big frontier labs. When they bring out a new model, they test it on these benchmarks and tell you how their new LLM is.</p>
+<p>What you should know is what model evals are, what benchmarks are, and how to read a benchmark. The benefit of that is that when you pick a new model, you already have an idea, and you know which model performs on which benchmark, and on that basis you will be able to make a better decision about which model to use in your LLM-based application.</p>
+<p>So you will feel slightly more confident. If you know this topic, but you might never have to do model evals practically, there is a very good chance you never do them. But you should know about them. You should be able to read them.</p>
+<h2 id="application-evals">Application evals <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=1037" target="_blank" rel="noopener" title="Play from 17:17">▶ 17:17</a></h2>
+<p>So that was all about model evals. Now let us talk about the second category, which is application evals. Before we discuss it, I want to tell you that this is the category you have to study properly.</p>
+<p>This should be your topic of interest. This is the category you will do practically. Your job as an AI engineer is to build LLM-based applications, and evaluating them is also your job. Application evals is the main topic of this playlist. In this whole course we will focus on it.</p>
+<p>There will be only one lecture on top of it, and that too, so that you understand how model evals work.</p>
+<h2 id="the-llm-is-only-one-thing">The LLM is only one thing <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=1092" target="_blank" rel="noopener" title="Play from 18:12">▶ 18:12</a></h2>
+<p>Application evals exist because, in an LLM, the LLM is just one thing. Beginners feel that an LLM application means LLMs, meaning the brain of it, and that everything is the LLM. That is not the case.</p>
+<p>As you gain experience in AI, you will build bigger and bigger things, and you will realise that the brain is important, but there is a lot more you have to put around it. So that is what your LLM-based application is made of.</p>
+<p>I have written the whole list here. Your user is one thing. The prompt you write, the system prompt, that is one thing. If you add tools, if you add APIs, that is one thing. The code you have written to run the whole system, in LangGraph, that goes from here to here. Branching from here, parallel control flow. That is one thing.</p>
+<p>The guardrails you have at the application level are also a very important thing. If you use output, that is one thing. And let me speak about context, because context is very important. If you are building a RAG system, retrieval is separate. The embedding model you use is separate. There are vector databases. After all of that, there is a complete setup, and the complete loop.</p>
+<p>So when you build a proper LLM application, the LLM is just one component. Beyond that, there is a lot more that you have to put in. That is why application evals is a very important topic. Evaluation alone will not do it.</p>
+<h2 id="the-smartphone-analogy">The smartphone analogy <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=1198" target="_blank" rel="noopener" title="Play from 19:58">▶ 19:58</a></h2>
+<p>From the model we get to know how capable it is. But everything you built around it also has to work.</p>
+<p>Take smartphones. What happens inside a smartphone? There is a chip, a Snapdragon or a MediaTek. And you will see that these chips release benchmarks: our new J2 is here, our J3 is here, the N2 score is this much. From that we find out how strong we are. Now tell me, is a good processor a guarantee that your smartphone is good, or do other things matter too?</p>
+<p>Making a smartphone needs a lot more things. You have your camera, your operating system, your sound system, your graphics. A lot more things. And only when all of them work properly is your smartphone good.</p>
+<p>Since there are so many things, the battery matters too, and the battery is also important. All these things work together, and only then does your smartphone run well. Just having a good processor is not enough. So all the other things you added, you have to evaluate those too.</p>
+<p>You put in a battery, so you will test the battery. You put in graphics, so you will test that too. The same thing applies here. The frontier labs have evaluated the LLM for you. But on top of that, the complete system we built, the evaluation of that is ours, as AI engineers. We do that evaluation.</p>
+<h2 id="component-level-and-system-level">Component level and system level <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=1320" target="_blank" rel="noopener" title="Play from 22:00">▶ 22:00</a></h2>
+<p>I hope that is clear. What is written here in theory is: evals assess the behaviour of an LLM-powered application at the level of the entire system and at the level of a component within it.</p>
+<p>What does the application do? It does it at the component level and it does it at the level of the whole system. If you have built a RAG, you will evaluate the whole RAG: what is its response like, what is the latency like, per token what is the cost. And you will also evaluate at the component level: is the retriever working correctly, is my embedding model working correctly, is my reranker working correctly. You get my idea.</p>
+<h2 id="what-application-evals-ask">What application evals ask <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=1356" target="_blank" rel="noopener" title="Play from 22:36">▶ 22:36</a></h2>
+<p>Here it says that in application evals we do not ask can the model do this.</p>
+<p>That was model evals. Instead, in evals we ask: will the product work correctly or not?</p>
+<p>For example, if you are building the CampusX chatbot, application evals will give you answers to questions like: did the student&#x27;s question get answered correctly? Was the course material used properly? Was the answer faithful? Was there any hallucination? Did we get the answer quickly? Is our chatbot safe?</p>
+<p>I hope that is clear. What are application evals, what are model evals, and why are we going to talk about evals across this whole course. If this entire discussion is clear, then I have done what I wanted.</p>
+<h2 id="recap">Recap <a class="rr-jump" href="https://youtu.be/cNF_MO82Qew?t=1432" target="_blank" rel="noopener" title="Play from 23:52">▶ 23:52</a></h2>
+<p>One thing you can do going forward: whenever you see a video on YouTube and the title says LLM evals, you can assume that 99% of the time it is teaching you application evals, not model evals.</p>
+<p>So in this lecture we did the following. First, why. Then what evals are, and what they consist of. We covered the two types, model evals and application evals. That is why and what, and by now it should be clear to you.</p>
+<p>Now let us move on to how LLM evals are done, and here again there is a disclaimer: the how I teach will be from the perspective of evals, not from the perspective of building an application.</p>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Lecture 1</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Lecture from the CampusX LLM Evals playlist • Generated 2026-10-18 05:25
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=24">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=24" data-rr-book="campusx-llm-evals" data-rr-page="lecture01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=24"></script>
+<script src="../../assets/code-copy.js?v=24"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=4"></script>
+<script src="../../assets/sync.js?v=2"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../../assets/firebase-config.js"></script>
+<script src="../../assets/sync-firebase.js?v=4"></script>
+</body>
+</html>

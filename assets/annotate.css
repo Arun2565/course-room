@@ -62,7 +62,7 @@
   max-width: calc(100vw - 16px);
   flex-wrap: wrap;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-family: 'Source Serif 4', Georgia, serif;
 }
 @keyframes rrpop {
   from { opacity: 0; transform: scale(0.92); }
@@ -237,9 +237,9 @@
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
   padding: 12px 14px;
   font-size: 0.9rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-family: 'Source Serif 4', Georgia, serif;
 }
-.rr-pop-quote { font-style: italic; color: #c7c7cc; margin-bottom: 8px; font-family: 'Spectral', Georgia, serif; }
+.rr-pop-quote { font-style: italic; color: #c7c7cc; margin-bottom: 8px; font-family: 'Source Serif 4', Georgia, serif; }
 .rr-pop-note {
   background: rgba(255, 214, 10, 0.12);
   border: 1px dashed rgba(255, 214, 10, 0.55);
@@ -247,13 +247,13 @@
   padding: 8px 10px;
   margin-bottom: 8px;
   color: #fff;
-  font-family: 'Spectral', Georgia, serif;
+  font-family: 'Source Serif 4', Georgia, serif;
 }
 .rr-dim { color: var(--rr-ink2); }
 #rr-popup textarea {
   width: 100%;
   min-height: 64px;
-  font-family: 'Spectral', Georgia, serif;
+  font-family: 'Source Serif 4', Georgia, serif;
   font-size: 16px;
   color: #fff;
   background: rgba(255, 255, 255, 0.1);

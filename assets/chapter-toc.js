@@ -25,17 +25,18 @@
     '.rr-contents{width:auto;margin:0 0 20px;background:var(--bg2,#f0ede6);',
     'border:1px solid var(--border,rgba(0,0,0,0.07));border-radius:4px;padding:18px 18px 14px;',
     "font-family:'DM Mono',monospace;font-size:0.78rem;}",
-    '.rr-contents-label{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;',
-    'color:var(--text3,#555);margin-bottom:12px;}',
+    '.rr-contents-label{font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;',
+    'color:var(--text3,#555);margin-bottom:10px;}',
     '.rr-contents ol{list-style:none;margin:0;padding:0;}',
     '.rr-contents li{margin:0;padding:0;}',
-    '.rr-contents a{display:block;font-family:\'DM Mono\',monospace;font-size:0.68rem;',
-    'letter-spacing:0.02em;color:var(--text2,#333);text-decoration:none;',
-    'padding:6px 8px;border-left:2px solid transparent;line-height:1.5;border-radius:0 3px 3px 0;}',
+    '.rr-contents a{display:block;font-family:var(--rr-readfont);font-size:0.8rem;',
+    'letter-spacing:0;color:var(--text2,#333);text-decoration:none;',
+    'padding:6px 9px;border-left:2px solid transparent;line-height:1.45;',
+    'border-radius:0 6px 6px 0;transition:color .14s ease,background .14s ease;}',
     '.rr-contents a:hover{color:var(--accent,#8a6820);}',
     '.rr-contents a.active{color:var(--accent,#8a6820);',
     'border-left-color:var(--accent,#8a6820);background:var(--glow,rgba(138,104,32,0.06));}',
-    '.rr-contents a.rr-sub{font-size:0.64rem;padding-left:22px;}',
+    '.rr-contents a.rr-sub{font-size:0.76rem;padding-left:20px;opacity:.92;}',
     '.rr-contents-num{margin-right:6px;}',
     '.reader-content h2[id],.reader-content h3[id]{scroll-margin-top:64px;}',
     '.rr-next{margin:48px 0 8px;padding:22px 4px 0;border-top:1px solid var(--border,rgba(0,0,0,0.07));',
@@ -119,6 +120,12 @@
   window.__rrTocOwned = true;
   window.toggleTOC = function () {
     var p = panel(), ov = overlay();
+    /* The rail is reserved in CSS, so the page should not reflow at all.
+     * This is the belt to that braces: if anything does shift (a cached
+     * stylesheet, a late webfont), the reader still lands on exactly the
+     * line they were on instead of being pushed left. */
+    var keepY = window.pageYOffset;
+    var toggle = function () {
     if (isMobile()) {
       if (p) p.classList.toggle('open');
       if (ov) ov.classList.toggle('show');
@@ -131,7 +138,14 @@
       }
       if (ov) ov.classList.remove('show');
     }
+    };
+    toggle();
+    if (window.pageYOffset !== keepY) window.scrollTo(0, keepY);
     sync();
+    var cur = markCurrent();
+    if (cur && !tocHidden()) {
+      try { cur.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    }
   };
 
     /* Aa reading-font switcher, saved as rr-font (shared with the EPUB reader) */
@@ -321,7 +335,8 @@
       title.className = 'rr-toptitle';
       title.id = 'rr-toptitle';
       var h1 = document.querySelector('.chapter-title h1');
-      if (h1) title.textContent = shortText(h1);
+      var name = cleanChapterTitle(h1 ? shortText(h1) : '');
+      if (name) title.textContent = name;
       var actions = document.createElement('div');
       actions.className = 'rr-header-actions';
       ['rr-toc-btn', 'rr-font-btn', 'rr-theme-btn'].forEach(function (id) {
@@ -449,6 +464,8 @@
           ticking = false;
           onScroll();
           saveProgress();
+          if (typeof updateProgress === 'function') updateProgress();
+          if (typeof updateStatus === 'function') updateStatus();
         });
       }, { passive: true });
     }
@@ -475,6 +492,57 @@
       var p = max > 0 ? Math.round(100 * y / max) : 100;
       var prev = parseInt(window.localStorage.getItem(k) || '0', 10) || 0;
       if (p > prev) window.localStorage.setItem(k, String(p));
+    } catch (e) {}
+  }
+
+  /* Current-chapter reading stats. The read time is baked into the page by
+   * the book builders as #readMeta[data-total-min]; the percentage is the
+   * live scroll position, shown next to the progress slider in the footer
+   * (#rr-toc-foot). Pages with no baked read time get nothing added.
+   */
+  var statusTotalMin = 0;
+  function fmtLeft(m) {
+    if (m <= 0) return 'done';
+    if (m < 60) return m + ' min left';
+    var hrs = Math.floor(m / 60), mins = m % 60;
+    return hrs + 'h' + (mins ? ' ' + mins + 'm' : '') + ' left';
+  }
+  function scrollRatio() {
+    var h = document.documentElement;
+    var max = (h ? h.scrollHeight : 0) - window.innerHeight;
+    var y = window.scrollY || window.pageYOffset || 0;
+    return max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+  }
+  function updateStatus() {
+    var el = document.getElementById('rr-sb-page');
+    if (!el) return;
+    var ratio = scrollRatio();
+    var pct = Math.round(ratio * 100);
+    var txt = '';
+    if (statusTotalMin) {
+      txt = '~' + statusTotalMin + ' min read · ';
+      txt += ratio >= 0.995 ? 'done' : fmtLeft(Math.max(1, Math.ceil(statusTotalMin * (1 - ratio))));
+      txt += ' · ';
+    }
+    txt += pct + '% read';
+    el.textContent = txt;
+  }
+  function buildStatusbar() {
+    try {
+      var meta = document.getElementById('readMeta');
+      statusTotalMin = meta ? parseInt(meta.getAttribute('data-total-min') || '0', 10) || 0 : 0;
+      var foot = document.getElementById('rr-toc-foot');
+      if (!foot) return;
+      var el = document.getElementById('rr-sb-page');
+      if (!el) {
+        el = document.createElement('span');
+        el.id = 'rr-sb-page';
+        el.className = 'rr-sb-page';
+        foot.appendChild(el);
+      }
+      updateStatus();
+      window.addEventListener('scroll', updateStatus, { passive: true });
+      window.addEventListener('resize', updateStatus);
     } catch (e) {}
   }
 
@@ -530,7 +598,265 @@
     } catch (e) {}
   }
 
+
+  /* A book's own H1 is written for print: "2 Working with text data",
+   * "Chapter 1. Overview of ...", "appendix AIntroduction to ...". The TOC
+   * gets clean names from the build; the sticky top bar reads the heading
+   * straight from the page, so it needs the same clean-up here. */
+  function cleanChapterTitle(raw) {
+    var t = (raw || '').replace(/\s+/g, ' ').trim();
+    if (!t) return '';
+    t = t.replace(/^appendix\s+([A-Za-z]|[0-9]+)\s*[.:\-\u2013\u2014]?\s*/i, '')
+         .replace(/^part\s+([0-9]+|[A-Za-z])\s*[.:\-\u2013\u2014]?\s*/i, '')
+         .replace(/^(?:[A-Za-z]{2,}\d{3,}\s*)?(?:lecture|chapter|chap\.?|section)\s*([0-9]+(?:\.[0-9]+)*)\s*[.:\-\u2013\u2014]?\s*/i, '')
+         /* a bare number glued to the text: one or two digits only, so
+          * "300K Subs" and "The Only 6 Metrics" keep their numbers */
+         .replace(/^([0-9]{1,2})[\s\.:\)\-\u2013\u2014]*([A-Za-z].*)$/, '$2');
+    return t.trim();
+  }
+
+  /* Some books define their own toggleChapter, some do not (and none of
+   * them define navigateToChapter any more, since rows now navigate with
+   * their own href). One owner, so the arrow always works. */
+  if (!window.toggleChapter) {
+    window.toggleChapter = function (event, idx) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      var arrow = document.getElementById('arrow-' + idx);
+      var subs = document.getElementById('subs-' + idx);
+      if (!subs) return;
+      var open = subs.style.display !== 'none';
+      subs.style.display = open ? 'none' : 'block';
+      if (arrow) arrow.classList.toggle('open', !open);
+    };
+  }
+
   ensureCSS();
+
+  /* ============================================================
+   * Modern contents: chapter numbers, live filter, current-chapter
+   * tracking, reading progress. Built here (not per book) so every
+   * book and every future one gets the same panel.
+   * ============================================================ */
+  function tocRoot() {
+    var p = panel();
+    return p && p.id !== 'epub-toc' ? p : null;
+  }
+
+  function chapterRows() {
+    var p = tocRoot();
+    if (!p) return [];
+    return Array.prototype.slice.call(p.querySelectorAll('.toc-chapter-wrap'));
+  }
+
+  function rowTitle(wrap) {
+    var a = wrap.querySelector('a.toc-chapter');
+    return a ? (a.textContent || '').trim() : '';
+  }
+
+  function currentFile() {
+    var m = location.pathname.match(/([^/]+_reader\.html)$/);
+    return m ? m[1] : location.pathname.split('/').pop();
+  }
+
+  function bookLabel() {
+    var h = document.querySelector('.chapter-title h1, h1');
+    return h ? (h.textContent || '').trim() : document.title;
+  }
+
+  function buildHeader() {
+    var p = tocRoot();
+    if (!p) return;
+    var head = p.querySelector('.toc-header');
+    if (!head) return;
+    var h3 = head.querySelector('h3');
+    if (!h3) return;
+    h3.textContent = 'Contents';
+    var label = bookLabel();
+    var book = document.createElement('span');
+    book.className = 'rr-toc-book';
+    book.textContent = label;
+    h3.parentNode.insertBefore(book, h3.nextSibling);
+  }
+
+  function buildFilter() {
+    var p = tocRoot();
+    if (!p) return;
+    var nav = p.querySelector('.toc-nav');
+    if (!nav) return;
+    var rows = chapterRows();
+    if (rows.length < 6) return;              /* nothing to filter */
+    if (document.getElementById('rr-toc-search')) return;
+
+    var box = document.createElement('div');
+    box.className = 'rr-toc-search';
+    var input = document.createElement('input');
+    input.type = 'search';
+    input.id = 'rr-toc-filter';
+    input.placeholder = 'Find a chapter';
+    input.setAttribute('aria-label', 'Find a chapter');
+    box.appendChild(input);
+
+    var empty = document.createElement('div');
+    empty.className = 'rr-toc-empty';
+    empty.textContent = 'No chapter matches that.';
+    empty.id = 'rr-toc-empty';
+
+    nav.parentNode.insertBefore(box, nav);
+    nav.parentNode.insertBefore(empty, nav.nextSibling);
+
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      var shown = 0;
+      rows.forEach(function (w) {
+        var hit = !q || rowTitle(w).toLowerCase().indexOf(q) !== -1;
+        w.style.display = hit ? '' : 'none';
+        if (hit) shown++;
+      });
+      empty.style.display = shown ? 'none' : 'block';
+    });
+    /* '/' focuses the filter, the way most reading tools do */
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      var tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (tocHidden()) return;
+      e.preventDefault();
+      input.focus();
+      input.select();
+    });
+  }
+
+  function buildFooter() {
+    var p = tocRoot();
+    if (!p) return;
+    if (document.getElementById('rr-toc-foot')) return;
+    var foot = document.createElement('div');
+    foot.className = 'rr-toc-foot';
+    foot.id = 'rr-toc-foot';
+    foot.innerHTML = '<span class="rr-toc-label"></span>'
+      + '<span class="rr-toc-meter"><i></i></span>'
+      + '<span class="rr-toc-pct">0%</span>';
+    p.appendChild(foot);
+    updateProgress();
+  }
+
+  function slug() {
+    var s = document.querySelector('script[data-rr-book]');
+    return s ? s.getAttribute('data-rr-book') : '';
+  }
+
+  function updateProgress() {
+    var foot = document.getElementById('rr-toc-foot');
+    if (!foot) return;
+    var rows = chapterRows();
+    var all = window.RR && RR.bookProgress ? RR.bookProgress() : {};
+    var mine = all[slug()] || {};
+    var sum = 0, count = 0;
+    rows.forEach(function (w) {
+      var a = w.querySelector('a.toc-chapter');
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      var pct = 0;
+      Object.keys(mine).forEach(function (k) {
+        if (href.indexOf(k) !== -1) pct = Math.max(pct, mine[k]);
+      });
+      sum += pct;
+      count++;
+      w.classList.toggle('rr-started', pct > 0 && pct < 100);
+    });
+    var avg = count ? Math.round(sum / count) : 0;
+    foot.querySelector('.rr-toc-label').textContent = count + (count === 1 ? ' chapter' : ' chapters');
+    foot.querySelector('.rr-toc-pct').textContent = avg + '%';
+    foot.querySelector('.rr-toc-meter i').style.width = avg + '%';
+    if (typeof updateStatus === 'function') updateStatus();
+  }
+
+  /* Badge each row the way the book itself numbers it: chapters get their
+   * own number, appendices a letter, front matter nothing at all. The build
+   * writes data-kind/data-num so nothing is guessed from list position. */
+  function markCurrent() {
+    var here = currentFile();
+    var rows = chapterRows();
+    var current = null, chapterNo = 0;
+    rows.forEach(function (w) {
+      var a = w.querySelector('a.toc-chapter');
+      if (!a) return;
+      var title = a.querySelector('.rr-toc-title');
+      if (!title && a.firstElementChild) a.firstElementChild.classList.add('rr-toc-title');
+      var kind = w.getAttribute('data-kind') || 'chapter';
+      var num = w.getAttribute('data-num') || '';
+      var numEl = w.querySelector('.rr-toc-num');
+      if (kind === 'chapter') chapterNo++;
+      var label = '';
+      if (kind === 'chapter') label = num || String(chapterNo);
+      else if (kind === 'appendix') label = num || '';
+      if (label) {
+        if (!numEl) {
+          numEl = document.createElement('span');
+          numEl.className = 'rr-toc-num';
+          a.insertBefore(numEl, a.firstChild);
+        }
+        numEl.textContent = label;
+        numEl.classList.toggle('rr-toc-num-letter', kind !== 'chapter');
+      } else if (numEl) {
+        numEl.parentNode.removeChild(numEl);
+      }
+      w.classList.toggle('rr-front', kind === 'front');
+      var href = (a.getAttribute('href') || '').split('#')[0];
+      var hit = here && href && href === here;
+      a.classList.toggle('rr-current', !!hit);
+      if (hit) current = w;
+    });
+    if (current) {
+      var arrow = current.querySelector('.toc-arrow');
+      var subs = current.querySelector('.toc-subs');
+      if (subs && subs.style.display === 'none') {
+        subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+      }
+    }
+    return current;
+  }
+
+  /* highlight the sub-heading you are actually looking at */
+  function spySubs() {
+    var heads = Array.prototype.slice.call(document.querySelectorAll('.toc-panel a.toc-heading'));
+    if (!heads.length) return;
+    var best = null, bestTop = -Infinity;   /* -Inf, or the first heading can never win */
+    heads.forEach(function (a) {
+      var id = (a.getAttribute('href') || '').split('#')[1];
+      if (!id) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      var top = el.getBoundingClientRect().top;
+      if (top <= 120 && top > bestTop) { bestTop = top; best = a; }
+    });
+    heads.forEach(function (a) { a.classList.remove('active'); });
+    if (best) best.classList.add('active');
+  }
+
+  window.__rrSpySubs = spySubs;   /* exposed so the scroll-spy can be tested */
+
+  function enhanceTOC() {
+    if (!tocRoot()) return;
+    buildHeader();
+    buildFilter();
+    buildFooter();
+    markCurrent();
+    var cur = markCurrent();
+    if (cur) {
+      try { cur.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    }
+    if (window.addEventListener) {
+      var t = null;
+      window.addEventListener('scroll', function () {
+        if (t) return;
+        t = setTimeout(function () { t = null; spySubs(); }, 120);
+      });
+      window.addEventListener('load', function () { markCurrent(); spySubs(); updateProgress(); });
+    }
+  }
+
   // reading streak: record today's visit (local-only, see assets/local.js)
   try {
     var __d = new Date(), __p = function (n) { return (n < 10 ? '0' : '') + n; };
@@ -544,11 +870,15 @@
       try { window.localStorage.setItem('rr-days', JSON.stringify(__days)); } catch (e3) {}
     }
   } catch (e) {}
+  /* Some books load this file from <head>, where document.body does not
+   * exist yet. The boot used to throw on that first null and left the
+   * contents panel without its filter, chapter badges or top bar. */
+  function boot() {
   // marks chapter pages so the wide-screen right gutter rules apply
   // (open-epub / hub pages never get this class)
   if (document.body && document.body.classList) document.body.classList.add('rr-chapter');
   // default: visible on desktop, hidden drawer on mobile
-  if (!isMobile()) {
+  if (!isMobile() && document.body) {
     document.body.classList.remove('toc-hidden');
     var p0 = panel();
     if (p0) p0.classList.remove('rr-hidden');
@@ -561,6 +891,8 @@
   buildContents();
   buildNext();
   saveProgress();
+  enhanceTOC();
+  buildStatusbar();   /* after enhanceTOC, which creates the footer it lives in */
   if (window.addEventListener) {
     window.addEventListener('resize', sync);
     // click outside the font menu closes it (menu button stops propagation)
@@ -581,4 +913,14 @@
     });
   }
   sync();
+  }
+  /* Only a head-loaded copy has no body yet; scripts at the end of the
+   * body can still run at once. */
+  if (document.body) {
+    boot();
+  } else if (document.addEventListener) {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
